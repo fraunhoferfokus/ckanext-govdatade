@@ -25,7 +25,6 @@ setup(
 	entry_points=\
 	"""
         [ckan.plugins]
-	# Add plugins here, eg
-	# myplugin=ckanext.govdatade:PluginClass
+        hamburg_harvester=ckanext.govdatade.harvesters.ckanharvester:HamburgCKANHarvester
 	""",
 )
