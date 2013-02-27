@@ -17,13 +17,8 @@ class HamburgCKANHarvester(CKANHarvester):
 
     def _set_config(self, config_str):
         '''Enforce API version 1 for enabling group import'''
-        if config_str:
-            self.config = json.loads(config_str)
-            if 'api_version' in self.config:
-                self.api_version = self.config['api_version']
-        else:
-            self.api_version = 1
-            self.config = {'api_version': '1'}
+        self.api_version = 1
+        self.config = {'api_version': '1'}
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
