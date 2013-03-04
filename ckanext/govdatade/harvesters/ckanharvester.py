@@ -17,13 +17,16 @@ class HamburgCKANHarvester(CKANHarvester):
 
     def _set_config(self, config_str):
         '''Enforce API version 1 for enabling group import'''
-        self.config = json.loads(config_str)
+        if config_str:
+            self.config = json.loads(config_str)
+        else:
+            self.config = {}
         self.api_version = 1
         self.config['api_version'] = '1'
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         package_dict['groups'] = [name.replace('-', '_') for name in package_dict['groups']]
-        package_dict['tags'].append('Hamburg')
+        package_dict['tags'].append(u'Hamburg')
         harvest_object.content = json.dumps(package_dict)
         return super(HamburgCKANHarvester, self).import_stage(harvest_object)
