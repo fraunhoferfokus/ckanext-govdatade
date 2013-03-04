@@ -24,5 +24,6 @@ class HamburgCKANHarvester(CKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         package_dict['groups'] = [name.replace('-', '_') for name in package_dict['groups']]
+        package_dict['tags'].append('Hamburg')
         harvest_object.content = json.dumps(package_dict)
         return super(HamburgCKANHarvester, self).import_stage(harvest_object)
