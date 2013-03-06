@@ -1,5 +1,6 @@
 from ckan.lib.helpers import json
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
+from ckanext.govdatade.harvesters.translator import translate_groups
 
 import logging
 
@@ -10,6 +11,7 @@ MAINTAINER = 'maintainer'
 MAINTAINER_EMAIL = 'maintainer_email'
 GROUPS = 'groups'
 TAGS = 'tags'
+LICENSE_ID = 'license_id'
 
 log = logging.getLogger(__name__)
 
@@ -60,3 +62,23 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         harvest_object.content = json.dumps(package_dict)
         return super(HamburgCKANHarvester, self).import_stage(harvest_object)
+
+
+class BerlinCKANHarvester(GroupCKANHarvester):
+    """A CKAN Harvester for Berlin sovling data compatibility problems."""
+
+    def info(self):
+        return {'name':        'berlin',
+                'title':       'Berlin Harvester',
+                'description': 'A CKAN Harvester for Berlin solving data compatibility problems.'}
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+
+        if package_dict[LICENSE_ID] == '':
+            package_dict[LICENSE_ID] = 'notspecified'
+
+        package_dict[GROUPS] = translate_groups(package_dict[GROUPS], 'berlin')
+
+        harvest_object.content = json.dumps(package_dict)
+        return super(BerlinCKANHarvester, self).import_stage(harvest_object)
