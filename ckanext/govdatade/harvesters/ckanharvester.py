@@ -27,16 +27,11 @@ def assert_author_fields(package_dict):
         raise Exception('There is no author/maintainer for package %s' % package_dict['id'])
 
 
-class HamburgCKANHarvester(CKANHarvester):
-    """A CKAN Harvester for Hamburg solving data compatibility problems."""
+class GroupCKANHarvester(CKANHarvester):
+    """An extended CKAN harvester that also imports remote groups, for that api version 1 is enforced"""
 
     api_version = 1
     """Enforce API version 1 for enabling group import"""
-
-    def info(self):
-        return {'name':        'hamburg',
-                'title':       'Hamburg Harvester',
-                'description': 'A CKAN Harvester for Hamburg solving data compatibility problems.'}
 
     def _set_config(self, config_str):
         """Enforce API version 1 for enabling group import"""
@@ -46,6 +41,15 @@ class HamburgCKANHarvester(CKANHarvester):
             self.config = {}
         self.api_version = 1
         self.config['api_version'] = '1'
+
+
+class HamburgCKANHarvester(GroupCKANHarvester):
+    """A CKAN Harvester for Hamburg solving data compatibility problems."""
+
+    def info(self):
+        return {'name':        'hamburg',
+                'title':       'Hamburg Harvester',
+                'description': 'A CKAN Harvester for Hamburg solving data compatibility problems.'}
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
