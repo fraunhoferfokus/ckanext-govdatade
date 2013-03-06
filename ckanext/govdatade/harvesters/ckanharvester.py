@@ -7,39 +7,19 @@ import logging
 import urllib2
 
 
-AUTHOR = 'author'
-AUTHOR_EMAIL = 'author_email'
-CONTENT_TYPE = 'content_type'
-EMAIL = 'email'
-EXTRAS = 'extras'
-FORMAT = 'format'
-GROUPS = 'groups'
-LICENSE_ID = 'license_id'
-MAINTAINER = 'maintainer'
-MAINTAINER_EMAIL = 'maintainer_email'
-METADATA_ORIGINAL_PORTAL = 'metadata_original_portal'
-POINT_OF_CONTACT = 'point_of_contact'
-POINT_OF_CONTACT_ADDRESS = 'point_of_contact_address'
-PROPERTIES = 'properties'
-RESOURCES = 'resources'
-SECTOR = 'sector'
-TAGS = 'tags'
-TERMS_OF_USE = 'terms_of_use'
-TYPE = 'type'
-
 log = logging.getLogger(__name__)
 
 
 def assert_author_fields(package_dict, author_alternative, author_email_alternative):
     """Ensures that the author field is set."""
 
-    if not package_dict[AUTHOR]:
-        package_dict[AUTHOR] = author_alternative
+    if not package_dict['author']:
+        package_dict['author'] = author_alternative
 
-    if not package_dict[AUTHOR_EMAIL]:
-        package_dict[AUTHOR_EMAIL] = author_email_alternative
+    if not package_dict['author_email']:
+        package_dict['author_email'] = author_email_alternative
 
-    if not package_dict[AUTHOR]:
+    if not package_dict['author']:
         raise Exception('There is no author for package %s' % package_dict['id'])
 
 
@@ -70,9 +50,9 @@ class HamburgCKANHarvester(GroupCKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
-        package_dict[GROUPS] = [name.replace('-', '_') for name in package_dict[GROUPS]]
-        package_dict[TAGS].append(u'Hamburg')
-        assert_author_fields(package_dict, package_dict[MAINTAINER], package_dict[MAINTAINER_EMAIL])
+        package_dict['groups'] = [name.replace('-', '_') for name in package_dict['groups']]
+        package_dict['tags'].append(u'Hamburg')
+        assert_author_fields(package_dict, package_dict['maintainer'], package_dict['maintainer_email'])
 
         harvest_object.content = json.dumps(package_dict)
         super(HamburgCKANHarvester, self).import_stage(harvest_object)
@@ -89,10 +69,10 @@ class BerlinCKANHarvester(GroupCKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
-        if package_dict[LICENSE_ID] == '':
-            package_dict[LICENSE_ID] = 'notspecified'
+        if package_dict['license_id'] == '':
+            package_dict['license_id'] = 'notspecified'
 
-        package_dict[GROUPS] = translate_groups(package_dict[GROUPS], 'berlin')
+        package_dict['groups'] = translate_groups(package_dict['groups'], 'berlin')
 
         harvest_object.content = json.dumps(package_dict)
         super(BerlinCKANHarvester, self).import_stage(harvest_object)
@@ -117,36 +97,36 @@ class RLPCKANHarvester(GroupCKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
-        if not package_dict[EXTRAS][CONTENT_TYPE] == 'datensatz':
+        if not package_dict['extras']['content_type'] == 'datensatz':
             return  # skip dataset
 
-        package_dict[TYPE] = 'datensatz'
-        for resource in package_dict[RESOURCES]:
-            if resource[FORMAT].lower() != 'pdf':
-                package_dict[TYPE] = 'dokument'
+        package_dict['type'] = 'datensatz'
+        for resource in package_dict['resources']:
+            if resource['format'].lower() != 'pdf':
+                package_dict['type'] = 'dokument'
                 break
 
-        assert_author_fields(package_dict, package_dict[POINT_OF_CONTACT],
-                             package_dict[POINT_OF_CONTACT_ADDRESS][EMAIL])
+        assert_author_fields(package_dict, package_dict['point_of_contact'],
+                             package_dict['point_of_contact_address']['email'])
 
-        package_dict[EXTRAS][METADATA_ORIGINAL_PORTAL] = 'http://daten.rlp.de'
-        package_dict[EXTRAS][SECTOR] = 'oeffentlich'
+        package_dict['extras']['metadata_original_portal'] = 'http://daten.rlp.de'
+        package_dict['extras']['sector'] = 'oeffentlich'
 
-        for extra_field in self.schema[PROPERTIES][EXTRAS][PROPERTIES].keys():
+        for extra_field in self.schema['properties']['extras']['properties'].keys():
             if extra_field in package_dict:
-                package_dict[EXTRAS][extra_field] = package_dict[extra_field]
+                package_dict['extras'][extra_field] = package_dict[extra_field]
                 del package_dict[extra_field]
 
-        package_dict[LICENSE_ID] = package_dict[EXTRAS][TERMS_OF_USE][LICENSE_ID]
+        package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
 
-        if 'justiz' in package_dict[GROUPS]:
-            package_dict[GROUPS].append('gesetze_justiz')
-            package_dict[GROUPS].remove('justiz')
+        if 'justiz' in package_dict['groups']:
+            package_dict['groups'].append('gesetze_justiz')
+            package_dict['groups'].remove('justiz')
 
-        if 'transport' in package_dict[GROUPS]:
-            package_dict[GROUPS].append('transport_verkehr')
-            package_dict[GROUPS].remove('transport')
+        if 'transport' in package_dict['groups']:
+            package_dict['groups'].append('transport_verkehr')
+            package_dict['groups'].remove('transport')
 
-        package_dict[GROUPS] = [group for group in package_dict[GROUPS] if group in self.govdata_groups]
+        package_dict['groups'] = [group for group in package_dict['groups'] if group in self.govdata_groups]
 
         super(RLPCKANHarvester, self).import_stage(harvest_object)
