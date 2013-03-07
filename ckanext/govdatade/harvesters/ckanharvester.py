@@ -4,6 +4,7 @@ from ckanext.govdatade.harvesters.translator import translate_groups
 
 import ConfigParser
 import logging
+import os
 import urllib2
 
 
@@ -87,8 +88,9 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
+        config_dir = os.path.dirname(os.path.abspath(__file__))
         config = ConfigParser.RawConfigParser()
-        config.read('config.ini')
+        config.read(config_dir + '/config.ini')
         schema_url = config.get('URLs', 'schema')
         groups_url = config.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
