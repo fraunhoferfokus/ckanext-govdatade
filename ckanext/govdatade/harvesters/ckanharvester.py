@@ -87,7 +87,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
         return {'name':        'rlp',
                 'title':       'RLP Harvester',
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
-
+    '''
     def __init__(self):
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
@@ -95,7 +95,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
         groups_url = config.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
-
+    '''
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
@@ -133,18 +133,13 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         super(RLPCKANHarvester, self).import_stage(harvest_object)
 
-class JSONDumpBaseCKANHarvester(CKANHarvester):
+class JSONDumpBaseCKANHarvester(GroupCKANHarvester):
     
     def info(self):
         return {'name':        'base',
                 'title':       'Base Harvester',
                 'description': 'A Base CKAN Harvester for CKANs which return a JSON dump file.'}
         
-    def _set_config(self, config_str):
-        '''Enforce API version 1 for enabling group import'''
-        self.api_version = 1
-        self.config = {'api_version': '1'}
-       
     def gather_stage(self, harvest_job):
         self._set_config(harvest_job.source.config)
         # Request all remote packages
@@ -252,21 +247,22 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
         
+        if len(package['name']) >100:
+            package['name'] = package['name'][:100]
         if not package['groups']:
             package['groups'] = []
         # there is no mapping between bavarian groups and german groups
         # package['groups'] = package['groups'] + transl.translate(package['groups'])
-        #copy ansprechpartner to author
-        quelle = filter(lambda x: x['role'] == 'ansprechpartner', package['extras']['contacts'])[0]
-        package['author'] = quelle['name']
-        if 'email' in quelle.keys():
-            package['author_email'] = quelle['email']
         
-        #copy veroeffentlichende_stelle to maintainer
-        quelle = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
-        package['maintainer'] = quelle['name']
-        package['maintainer_email'] = quelle['email']
-        package['license_id'] = package['extras']['terms_of_use']['license_id']
+        #copy autor to author
+        quelle = filter(lambda x: x['role'] == 'autor', package['extras']['contacts'])[0]
+        
+        if not package['author']:
+            package['author'] = quelle['name']
+        if not package['author_email']:
+            if 'email' in quelle.keys():
+                package['author_email'] = quelle['email']
+        
         if not "spatial-text" in package["extras"].keys():
             package["extras"]["spatial-text"] = 'Bayern 09'
         for r in package['resources']:
