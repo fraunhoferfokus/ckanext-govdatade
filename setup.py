@@ -26,5 +26,7 @@ setup(
 	"""
         [ckan.plugins]
         hamburg_harvester=ckanext.govdatade.harvesters.ckanharvester:HamburgCKANHarvester
+	bremen_harvester=ckanext.govdatade.harvesters.ckanharvester:BremenCKANHarvester
+	bayern_harvester=ckanext.govdatade.harvesters.ckanharvester:BayernCKANHarvester
 	""",
 )
