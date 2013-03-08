@@ -1,4 +1,3 @@
-import uuid
 from ckan.lib.helpers import json
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
@@ -8,6 +7,7 @@ import ConfigParser
 import logging
 import os
 import urllib2
+import uuid
 
 
 log = logging.getLogger(__name__)
@@ -53,7 +53,10 @@ class HamburgCKANHarvester(GroupCKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
+        # fix usage of hyphen, the schema group names use underscores
         package_dict['groups'] = [name.replace('-', '_') for name in package_dict['groups']]
+
+        # add tag for better searchability
         package_dict['tags'].append(u'Hamburg')
         assert_author_fields(package_dict, package_dict['maintainer'], package_dict['maintainer_email'])
 
@@ -102,8 +105,9 @@ class RLPCKANHarvester(GroupCKANHarvester):
         package_dict = json.loads(harvest_object.content)
 
         if not package_dict['extras']['content_type'] == 'datensatz':
-            return  # skip dataset
+            return  # skip all non-datasets for the time being
 
+        # manually set package type
         package_dict['type'] = 'datensatz'
         for resource in package_dict['resources']:
             if resource['format'].lower() != 'pdf':
@@ -116,6 +120,8 @@ class RLPCKANHarvester(GroupCKANHarvester):
         package_dict['extras']['metadata_original_portal'] = 'http://daten.rlp.de'
         package_dict['extras']['sector'] = 'oeffentlich'
 
+        # the extra fields are present as CKAN core fields in the remote
+        # instance: copy all content from these fields into the extras field
         for extra_field in self.schema['properties']['extras']['properties'].keys():
             if extra_field in package_dict:
                 package_dict['extras'][extra_field] = package_dict[extra_field]
@@ -123,6 +129,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
 
+        # map these two group names to schema group names
         if 'justiz' in package_dict['groups']:
             package_dict['groups'].append('gesetze_justiz')
             package_dict['groups'].remove('justiz')
@@ -131,8 +138,8 @@ class RLPCKANHarvester(GroupCKANHarvester):
             package_dict['groups'].append('transport_verkehr')
             package_dict['groups'].remove('transport')
 
+        # filter illegal group names
         package_dict['groups'] = [group for group in package_dict['groups'] if group in self.govdata_groups]
-
         super(RLPCKANHarvester, self).import_stage(harvest_object)
 
 
