@@ -9,8 +9,13 @@ import os
 import urllib2
 import uuid
 
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh = logging.FileHandler('govdata-harvester.log')
+fh.setFormatter(formatter)
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log.addHandler(fh)
 
 
 def assert_author_fields(package_dict, author_alternative, author_email_alternative):
@@ -23,7 +28,7 @@ def assert_author_fields(package_dict, author_alternative, author_email_alternat
         package_dict['author_email'] = author_email_alternative
 
     if not package_dict['author']:
-        raise Exception('There is no author for package %s' % package_dict['id'])
+        raise ValueError('There is no author for package %s' % package_dict['id'])
 
 
 class GroupCKANHarvester(CKANHarvester):
@@ -58,7 +63,12 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         # add tag for better searchability
         package_dict['tags'].append(u'Hamburg')
-        assert_author_fields(package_dict, package_dict['maintainer'], package_dict['maintainer_email'])
+        try:
+            assert_author_fields(package_dict, package_dict['maintainer'],
+                                 package_dict['maintainer_email'])
+        except ValueError, e:
+            log.error('Hamburg: ' + str(e))
+            return
 
         harvest_object.content = json.dumps(package_dict)
         super(HamburgCKANHarvester, self).import_stage(harvest_object)
