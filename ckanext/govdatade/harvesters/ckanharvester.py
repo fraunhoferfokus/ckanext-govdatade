@@ -13,7 +13,7 @@ config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(config.get('Logger', 'format'))
 fh = logging.FileHandler(config.get('Logger', 'logfile'))
 fh.setFormatter(formatter)
 
@@ -119,11 +119,10 @@ class RLPCKANHarvester(GroupCKANHarvester):
             return  # skip all non-datasets for the time being
 
         # manually set package type
-        package_dict['type'] = 'datensatz'
-        for resource in package_dict['resources']:
-            if resource['format'].lower() != 'pdf':
-                package_dict['type'] = 'dokument'
-                break
+        if all([resource['format'].lower() == 'pdf' for resource in package_dict['resources']]):
+            package_dict['type'] = 'dokument'
+        else:
+            package_dict['type'] = 'datensatz'
 
         assert_author_fields(package_dict, package_dict['point_of_contact'],
                              package_dict['point_of_contact_address']['email'])
