@@ -9,8 +9,12 @@ import os
 import urllib2
 import uuid
 
+config = ConfigParser.RawConfigParser()
+config_dir = os.path.dirname(os.path.abspath(__file__))
+config.read(config_dir + '/config.ini')
+
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh = logging.FileHandler('govdata-harvester.log')
+fh = logging.FileHandler(config.get('Logger', 'logfile'))
 fh.setFormatter(formatter)
 
 log = logging.getLogger(__name__)
@@ -103,9 +107,6 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-        config_dir = os.path.dirname(os.path.abspath(__file__))
-        config = ConfigParser.RawConfigParser()
-        config.read(config_dir + '/config.ini')
         schema_url = config.get('URLs', 'schema')
         groups_url = config.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
