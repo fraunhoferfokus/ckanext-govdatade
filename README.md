@@ -30,3 +30,12 @@ ckan.plugins = harvest ckan_harvester hamburg_harvester
 After restarting CKAN the plugins should be ready to use.
 
 [fork]: https://github.com/fraunhoferfokus/ckanext-harvest
+
+## Testing
+
+Unit tests are placed in the `ckanext/govdatade/tests` directory and can be run by executing Python's Test Discovery.
+
+```
+$ cd /path/to/virtualenv/src/ckanext-govdatade
+python -m unittest discover
+```

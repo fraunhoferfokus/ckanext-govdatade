@@ -86,14 +86,16 @@ class BerlinCKANHarvester(GroupCKANHarvester):
                 'title':       'Berlin Harvester',
                 'description': 'A CKAN Harvester for Berlin solving data compatibility problems.'}
 
+    def amend_package(self, package):
+
+        if package['license_id'] == '':
+            package['license_id'] = 'notspecified'
+
+        package['groups'] = translate_groups(package['groups'], 'berlin')
+
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
-
-        if package_dict['license_id'] == '':
-            package_dict['license_id'] = 'notspecified'
-
-        package_dict['groups'] = translate_groups(package_dict['groups'], 'berlin')
-
+        self.amend_package(package_dict)
         harvest_object.content = json.dumps(package_dict)
         super(BerlinCKANHarvester, self).import_stage(harvest_object)
 
