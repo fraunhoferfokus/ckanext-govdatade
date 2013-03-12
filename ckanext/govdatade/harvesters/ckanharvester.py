@@ -201,9 +201,6 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
     A CKAN Harvester for Bremen. The Harvester retrieves a JSON dump,
     which will be loaded to CKAN.
     '''
-    bremen_to_germany_url = "https://github.com/fraunhoferfokus/ogd-metadata/raw/master/kategorien/bremen2deutschland.json"
-    translation_map = json.loads(urllib2.urlopen(bremen_to_germany_url).read())
-
     def info(self):
         return {'name':        'bremen',
                 'title':       'Bremen CKAN Harvester',
@@ -226,7 +223,7 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
         # set correct groups
         if not package['groups']:
             package['groups'] = []
-        package['groups'] = [value for group in package['groups'] for value in self.translation_map[group]]
+        package['groups'] = translate_groups(package['groups'], 'bremen')
         #copy veroeffentlichende_stelle to maintainer
         quelle = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
         package['maintainer'] = quelle['name']
@@ -272,8 +269,6 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
             package['name'] = package['name'][:100]
         if not package['groups']:
             package['groups'] = []
-        # there is no mapping between bavarian groups and german groups
-        # package['groups'] = package['groups'] + transl.translate(package['groups'])
 
         #copy autor to author
         quelle = filter(lambda x: x['role'] == 'autor', package['extras']['contacts'])[0]
