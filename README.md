@@ -37,5 +37,5 @@ Unit tests are placed in the `ckanext/govdatade/tests` directory and can be run 
 
 ```
 $ cd /path/to/virtualenv/src/ckanext-govdatade
-python -m unittest discover
+$ python -m unittest discover
 ```

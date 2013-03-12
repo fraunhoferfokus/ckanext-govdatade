@@ -1,2 +1,2 @@
 # ckanext-harvester with feature branch for implementing group import
--e git+https://github.com/fraunhoferfokus/ckanext-harvest.git@feature-group-import#egg=ckanext-harvest
+-e git+https://github.com/fraunhoferfokus/ckanext-harvest.git@aa6c5ab1abd7526f0610f00b9b9e4bfb291031e8#egg=ckanext-harvest
