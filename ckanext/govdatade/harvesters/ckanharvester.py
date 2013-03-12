@@ -206,7 +206,7 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
                 'title':       'Bremen CKAN Harvester',
                 'description': 'A CKAN Harvester for Bremen.'}
 
-    def import_stage(self, harvest_object):
+    def amend_package(self, package):
         '''
         This function fixes some differences in the datasets retrieved from Bremen and our schema such as:
         - fix groups
@@ -215,31 +215,40 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
         - copy veroeffentlichende_stelle to maintainer
         - set spatial text
         '''
-        package = json.loads(harvest_object.content)
 
-        #set original portal
+        #set metadata original portal
         package['extras']['metadata_original_portal'] = 'http://daten.bremen.de/sixcms/detail.php?template=export_daten_json_d'
 
         # set correct groups
         if not package['groups']:
             package['groups'] = []
         package['groups'] = translate_groups(package['groups'], 'bremen')
+
         #copy veroeffentlichende_stelle to maintainer
-        quelle = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
-        package['maintainer'] = quelle['name']
-        package['maintainer_email'] = quelle['email']
+        if 'contacts' in package['extras']:
+            quelle = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
+            package['maintainer'] = quelle['name']
+            package['maintainer_email'] = quelle['email']
 
         #fix typos in terms of use
-        self.fix_terms_of_use(package['extras']['terms_of_use'])
-        #copy license id
-        package['license_id'] = package['extras']['terms_of_use']['license_id']
+        if 'terms_of_use' in package['extras']:
+            self.fix_terms_of_use(package['extras']['terms_of_use'])
+            #copy license id
+            package['license_id'] = package['extras']['terms_of_use']['license_id']
+        else:
+            package['license_id'] = u'notspecified'
 
-        if not "spatial-text" in package["extras"].keys():
+        if not "spatial-text" in package["extras"]:
             package["extras"]["spatial-text"] = 'Bremen 04 0 11 000'
 
         #generate id based on OID namespace and package name, this makes sure,
         #that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
 
         harvest_object.content = json.dumps(package)
         super(BremenCKANHarvester, self).import_stage(harvest_object)
@@ -262,21 +271,21 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
                 'title':       'Bavarian CKAN Harvester',
                 'description': 'A CKAN Harvester for Bavaria.'}
 
-    def import_stage(self, harvest_object):
-        package = json.loads(harvest_object.content)
-
+    def amend_package(self, package):
         if len(package['name']) > 100:
             package['name'] = package['name'][:100]
         if not package['groups']:
             package['groups'] = []
 
         #copy autor to author
-        quelle = filter(lambda x: x['role'] == 'autor', package['extras']['contacts'])[0]
+        quelle = {}
+        if 'contacts' in package['extras']:
+            quelle = filter(lambda x: x['role'] == 'autor', package['extras']['contacts'])[0]
 
-        if not package['author']:
+        if not package['author'] and quelle:
             package['author'] = quelle['name']
         if not package['author_email']:
-            if 'email' in quelle.keys():
+            if 'email' in quelle:
                 package['author_email'] = quelle['email']
 
         if not "spatial-text" in package["extras"].keys():
@@ -287,6 +296,11 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
         #generate id based on OID namespace and package name, this makes sure,
         #that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
 
         harvest_object.content = json.dumps(package)
         super(BayernCKANHarvester, self).import_stage(harvest_object)
