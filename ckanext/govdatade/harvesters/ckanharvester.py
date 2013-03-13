@@ -25,10 +25,10 @@ log.addHandler(fh)
 def assert_author_fields(package_dict, author_alternative, author_email_alternative):
     """Ensures that the author field is set."""
 
-    if not package_dict['author']:
+    if not 'author' in package_dict or not package_dict['author']:
         package_dict['author'] = author_alternative
 
-    if not package_dict['author_email']:
+    if not 'author_email' in package_dict or not package_dict['author_email']:
         package_dict['author_email'] = author_email_alternative
 
     if not package_dict['author']:
@@ -49,6 +49,7 @@ class GroupCKANHarvester(CKANHarvester):
             self.config = {}
         self.api_version = 1
         self.config['api_version'] = '1'
+        self.config['force_all'] = True
 
 
 class HamburgCKANHarvester(GroupCKANHarvester):
@@ -117,12 +118,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
 
-    def import_stage(self, harvest_object):
-        package_dict = json.loads(harvest_object.content)
-
-        if not package_dict['extras']['content_type'] == 'datensatz':
-            return  # skip all non-datasets for the time being
-
+    def amend_package(self, package_dict):
         # manually set package type
         if all([resource['format'].lower() == 'pdf' for resource in package_dict['resources']]):
             package_dict['type'] = 'dokument'
@@ -155,6 +151,21 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         # filter illegal group names
         package_dict['groups'] = [group for group in package_dict['groups'] if group in self.govdata_groups]
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+
+        if not package_dict['extras']['content_type'].lower() == 'datensatz':
+            return  # skip all non-datasets for the time being
+
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('RLP: ' + str(e))
+            return
+
+        harvest_object.content = json.dumps(package_dict)
         super(RLPCKANHarvester, self).import_stage(harvest_object)
 
 
