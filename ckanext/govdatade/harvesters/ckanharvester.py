@@ -59,21 +59,24 @@ class HamburgCKANHarvester(GroupCKANHarvester):
                 'title':       'Hamburg Harvester',
                 'description': 'A CKAN Harvester for Hamburg solving data compatibility problems.'}
 
-    def import_stage(self, harvest_object):
-        package_dict = json.loads(harvest_object.content)
+    def amend_package(self, package):
 
         # fix usage of hyphen, the schema group names use underscores
-        package_dict['groups'] = [name.replace('-', '_') for name in package_dict['groups']]
+        package['groups'] = [name.replace('-', '_') for name in package['groups']]
 
         # add tag for better searchability
-        package_dict['tags'].append(u'Hamburg')
+        package['tags'].append(u'Hamburg')
+        assert_author_fields(package, package['maintainer'],
+                             package['maintainer_email'])
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
         try:
-            assert_author_fields(package_dict, package_dict['maintainer'],
-                                 package_dict['maintainer_email'])
+            self.amend_package(package_dict)
         except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
             log.error('Hamburg: ' + str(e))
             return
-
         harvest_object.content = json.dumps(package_dict)
         super(HamburgCKANHarvester, self).import_stage(harvest_object)
 
