@@ -24,7 +24,7 @@ $ python setup.py develop
 Add the following plugins to your CKAN configuration file:
 
 ```
-ckan.plugins = harvest ckan_harvester hamburg_harvester
+ckan.plugins = harvest ckan_harvester hamburg_harvester rlp_harvester berlin_harvester
 ```
 
 After restarting CKAN the plugins should be ready to use.
