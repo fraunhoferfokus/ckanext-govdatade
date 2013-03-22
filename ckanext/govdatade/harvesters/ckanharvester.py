@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
 from ckan.lib.helpers import json
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
@@ -318,3 +321,47 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         super(BayernCKANHarvester, self).import_stage(harvest_object)
+
+
+class MoersCKANHarvester(GroupCKANHarvester):
+    """A CKAN Harvester for Moers solving data compatibility problems."""
+
+    def info(self):
+        return {'name':        'moers',
+                'title':       'Moers Harvester',
+                'description': 'A CKAN Harvester for Moers solving data compatibility problems.'}
+
+    def amend_package(self, package):
+
+        publisher = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
+        maintainer = filter(lambda x: x['role'] == 'maintainer', package['extras']['contacts'])[0]
+
+        package['title'] = package['title'] + ' Moers'
+        package['name'] = package['name'].lower().replace(u'ü', 'ue').replace(u'ä', 'ae').replace(u'ß', 'ss') + '_moers'
+
+        package['author'] = 'Stadt Moers'
+        package['author_email'] = publisher['email']
+        package['maintainer'] = maintainer['name']
+        package['maintainer_email'] = maintainer['email']
+
+        package['license_id'] = package['extras']['terms_of_use']['license_id']
+        package['extras']['metadata_original_portal'] = 'http://www.offenedaten.moers.de/'
+
+        if not "spatial-text" in package["extras"].keys():
+            package["extras"]["spatial-text"] = '05 1 70 024 Moers'
+
+        for resource in package['resources']:
+            resource['format'] = resource['format'].replace('text/comma-separated-values', 'XLS')
+            resource['format'] = resource['format'].replace('application/json', 'JSON')
+            resource['format'] = resource['format'].replace('application/xml', 'XML')
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('Moers: ' + str(e))
+            return
+        harvest_object.content = json.dumps(package_dict)
+        super(MoersCKANHarvester, self).import_stage(harvest_object)
