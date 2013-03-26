@@ -27,7 +27,7 @@ Add the following plugins to your CKAN configuration file:
 ckan.plugins = harvest ckan_harvester hamburg_harvester rlp_harvester berlin_harvester
 ```
 
-After restarting CKAN the plugins should be ready to use.
+Please make sure, that the CKAN process will have access to the logfile specified in `/path/to/virtualenv/src/ckanext-govdata/ckanext/govdatade/harvesters/config.ini`. After restarting CKAN the plugins should be ready to use.
 
 [fork]: https://github.com/fraunhoferfokus/ckanext-harvest
 
