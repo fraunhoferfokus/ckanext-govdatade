@@ -340,8 +340,9 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
         publisher = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
         maintainer = filter(lambda x: x['role'] == 'ansprechpartner', package['extras']['contacts'])[0]
 
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['title'] = package['title'] + ' Moers'
-        package['name'] = package['name'].lower().replace(u'ü', 'ue').replace(u'ö', 'oe').replace(u'ä', 'ae').replace(u'ß', 'ss') + '_moers'
+        package['name'] = package['name'].lower().encode('ascii', 'ignore')
 
         package['author'] = 'Stadt Moers'
         package['author_email'] = publisher['email']
@@ -353,6 +354,13 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
 
         if not "spatial-text" in package["extras"].keys():
             package["extras"]["spatial-text"] = '05 1 70 024 Moers'
+
+        if isinstance(package['tags'], basestring):
+            if not package['tags']:
+                package['tags'] = []
+            else:
+                package['tags'] = [package['tags']]
+        package['tags'].append('moers')
 
         for resource in package['resources']:
             resource['format'] = resource['format'].replace('text/comma-separated-values', 'XLS')

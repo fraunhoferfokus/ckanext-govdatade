@@ -71,6 +71,7 @@ class MoersHarvesterTest(unittest.TestCase):
         harvester = MoersCKANHarvester()
         harvester.amend_package(package)
 
+        self.assertNotNone(package['id'])
         self.assertTrue(package['title'].endswith(' Moers'))
 
         self.assertNotIn(u'ü', package['name'])
@@ -87,4 +88,3 @@ class MoersHarvesterTest(unittest.TestCase):
         self.assertEqual(package['extras']['metadata_original_portal'], 'http://www.offenedaten.moers.de/')
         self.assertEqual(package['extras']['spatial-text'], '05 1 70 024 Moers')
         self.assertEqual(package['resources'][0]['format'], 'JSON')
-
