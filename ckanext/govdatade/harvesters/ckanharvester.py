@@ -16,8 +16,12 @@ config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
 
+logfile_path = config.get('Logger', 'logfile')
+if not os.path.exists(logfile_path):
+    os.makedirs(logfile_path)
+
 formatter = logging.Formatter(config.get('Logger', 'format'))
-fh = logging.FileHandler(config.get('Logger', 'logfile'))
+fh = logging.FileHandler(logfile_path)
 fh.setFormatter(formatter)
 
 log = logging.getLogger(__name__)
@@ -323,7 +327,7 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
         super(BayernCKANHarvester, self).import_stage(harvest_object)
 
 
-class MoersCKANHarvester(GroupCKANHarvester):
+class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
     """A CKAN Harvester for Moers solving data compatibility problems."""
 
     def info(self):

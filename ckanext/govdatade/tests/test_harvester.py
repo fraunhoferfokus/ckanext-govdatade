@@ -1,6 +1,9 @@
-import unittest
-
 from ckanext.govdatade.harvesters.ckanharvester import BerlinCKANHarvester
+from ckanext.govdatade.harvesters.ckanharvester import MoersCKANHarvester
+
+import os
+import json
+import unittest
 
 
 class BerlinHarvesterTest(unittest.TestCase):
@@ -53,3 +56,14 @@ class BerlinHarvesterTest(unittest.TestCase):
         self.assertTrue('geo' in package['groups'])
         self.assertTrue('umwelt_klima' in package['groups'])
         self.assertTrue('infrastruktur_bauen_wohnen' in package['groups'])
+
+
+class MoersHarvesterTest(unittest.TestCase):
+
+    def test_amend_package(self):
+        directory = os.path.dirname(os.path.abspath(__file__))
+        moers_file = open(directory + '/moers.json')
+        package = json.loads(moers_file.read())
+
+        harvester = MoersCKANHarvester()
+        harvester.amend_package(package)
