@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
 from ckanext.govdatade.harvesters.ckanharvester import BerlinCKANHarvester
 from ckanext.govdatade.harvesters.ckanharvester import MoersCKANHarvester
 
@@ -67,3 +70,21 @@ class MoersHarvesterTest(unittest.TestCase):
 
         harvester = MoersCKANHarvester()
         harvester.amend_package(package)
+
+        self.assertTrue(package['title'].endswith(' Moers'))
+
+        self.assertNotIn(u'ü', package['name'])
+        self.assertNotIn(u'ö', package['name'])
+        self.assertNotIn(u'ä', package['name'])
+        self.assertNotIn(u'ß', package['name'])
+
+        self.assertEqual(package['author'], 'Stadt Moers')
+        self.assertEqual(package['author_email'], 'Claus.Arndt@Moers.de')
+        self.assertEqual(package['maintainer'], 'Ilona Bajorat')
+        self.assertEqual(package['maintainer_email'], 'Ilona.Bajorat@Moers.de')
+
+        self.assertEqual(package['license_id'], 'dl-de-by-1.0')
+        self.assertEqual(package['extras']['metadata_original_portal'], 'http://www.offenedaten.moers.de/')
+        self.assertEqual(package['extras']['spatial-text'], '05 1 70 024 Moers')
+        self.assertEqual(package['resources'][0]['format'], 'JSON')
+

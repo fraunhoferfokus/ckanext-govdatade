@@ -338,10 +338,10 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
     def amend_package(self, package):
 
         publisher = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
-        maintainer = filter(lambda x: x['role'] == 'maintainer', package['extras']['contacts'])[0]
+        maintainer = filter(lambda x: x['role'] == 'ansprechpartner', package['extras']['contacts'])[0]
 
         package['title'] = package['title'] + ' Moers'
-        package['name'] = package['name'].lower().replace(u'ü', 'ue').replace(u'ä', 'ae').replace(u'ß', 'ss') + '_moers'
+        package['name'] = package['name'].lower().replace(u'ü', 'ue').replace(u'ö', 'oe').replace(u'ä', 'ae').replace(u'ß', 'ss') + '_moers'
 
         package['author'] = 'Stadt Moers'
         package['author_email'] = publisher['email']
