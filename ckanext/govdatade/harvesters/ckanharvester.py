@@ -17,8 +17,9 @@ config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
 
 logfile_path = config.get('Logger', 'logfile')
-if not os.path.exists(logfile_path):
-    os.makedirs(logfile_path)
+logfile_directory = os.path.dirname(logfile_path)
+if logfile_directory and not os.path.exists(logfile_directory):
+    os.makedirs(logfile_directory)
 
 formatter = logging.Formatter(config.get('Logger', 'format'))
 fh = logging.FileHandler(logfile_path)
