@@ -12,6 +12,7 @@ import os
 import urllib2
 import uuid
 
+
 config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
@@ -104,6 +105,7 @@ class BerlinCKANHarvester(GroupCKANHarvester):
             package['license_id'] = 'notspecified'
 
         package['groups'] = translate_groups(package['groups'], 'berlin')
+        package_dict['extras']['metadata_original_portal'] = 'http://datenregister.berlin.de'
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
@@ -343,7 +345,7 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
 
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['title'] = package['title'] + ' Moers'
-        package['name'] = package['name'].lower().encode('ascii', 'ignore')
+        package['name'] = package['name'].lower()
 
         package['author'] = 'Stadt Moers'
         package['author_email'] = publisher['email']
