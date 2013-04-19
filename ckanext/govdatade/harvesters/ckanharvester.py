@@ -105,7 +105,7 @@ class BerlinCKANHarvester(GroupCKANHarvester):
             package['license_id'] = 'notspecified'
 
         package['groups'] = translate_groups(package['groups'], 'berlin')
-        package_dict['extras']['metadata_original_portal'] = 'http://datenregister.berlin.de'
+        package['extras']['metadata_original_portal'] = 'http://datenregister.berlin.de'
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
