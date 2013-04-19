@@ -73,6 +73,7 @@ class RostockCKANHarvester(GroupCKANHarvester):
     def amend_package(self, package):
         portal = 'http://www.opendata-hro.de'
         package['extras']['metadata_original_portal'] = portal
+        package['name'] = package['name'] + '-hro'
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
