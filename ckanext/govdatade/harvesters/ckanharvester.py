@@ -61,6 +61,31 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['force_all'] = True
 
 
+class RostockCKANHarvester(GroupCKANHarvester):
+    """A CKAN Harvester for Rostock solving data compatibility problems."""
+
+    def info(self):
+        return {'name':        'rostock',
+                'title':       'Rostock Harvester',
+                'description': 'A CKAN Harvester for Rostock solving data'
+                'compatibility problems.'}
+
+    def amend_package(self, package):
+        portal = 'http://www.opendata-hro.de'
+        package['extras']['metadata_original_portal'] = portal
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('Rostock: ' + str(e))
+            return
+        harvest_object.content = json.dumps(package_dict)
+        super(RostockCKANHarvester, self).import_stage(harvest_object)
+
+
 class HamburgCKANHarvester(GroupCKANHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
 
