@@ -406,3 +406,35 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
             return
         harvest_object.content = json.dumps(package_dict)
         super(MoersCKANHarvester, self).import_stage(harvest_object)
+
+
+class GovAppsHarvester(JSONDumpBaseCKANHarvester):
+    '''
+    A CKAN Harvester for GovApps. The Harvester retrieves a JSON dump,
+    which will be loaded to CKAN.
+    '''
+
+    def info(self):
+        return {'name':        'govapps',
+                'title':       'GovApps Harvester',
+                'description': 'A CKAN Harvester for GovApps.'}
+
+    def amend_package(self, package):
+        if not package['groups']:
+            package['groups'] = []
+        #fix groups
+        if not package['groups']:
+            package['groups'] = []
+        package['groups'] = [x for x in translate_groups(package['groups'], 'govapps') if len(x) > 0]
+
+        #generate id based on OID namespace and package name, this makes sure,
+        #that packages with the same name get the same id
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        super(GovAppsHarvester, self).import_stage(harvest_object)
