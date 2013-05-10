@@ -32,5 +32,6 @@ setup(
         berlin_harvester=ckanext.govdatade.harvesters.ckanharvester:BerlinCKANHarvester
         moers_harvester=ckanext.govdatade.harvesters.ckanharvester:MoersCKANHarvester
         rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
+        govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
 	""",
 )
