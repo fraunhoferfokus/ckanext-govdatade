@@ -176,6 +176,10 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
 
+        # GDI related patch
+        if 'gdi-rp' in package_dict['groups']:
+            package_dict['type'] = 'datensatz'
+
         # map these two group names to schema group names
         if 'justiz' in package_dict['groups']:
             package_dict['groups'].append('gesetze_justiz')
@@ -191,7 +195,8 @@ class RLPCKANHarvester(GroupCKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
 
-        if not package_dict['extras']['content_type'].lower() == 'datensatz':
+        dataset = package_dict['extras']['content_type'].lower() == 'datensatz'
+        if not dataset and not 'gdi-rp' in package_dict['groups']:
             return  # skip all non-datasets for the time being
 
         try:
