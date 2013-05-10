@@ -3,6 +3,7 @@
 
 from ckanext.govdatade.harvesters.ckanharvester import BerlinCKANHarvester
 from ckanext.govdatade.harvesters.ckanharvester import MoersCKANHarvester
+from ckanext.govdatade.harvesters.ckanharvester import RLPCKANHarvester
 
 import os
 import json
@@ -85,6 +86,33 @@ class MoersHarvesterTest(unittest.TestCase):
         self.assertEqual(package['maintainer_email'], 'Ilona.Bajorat@Moers.de')
 
         self.assertEqual(package['license_id'], 'dl-de-by-1.0')
-        self.assertEqual(package['extras']['metadata_original_portal'], 'http://www.offenedaten.moers.de/')
-        self.assertEqual(package['extras']['spatial-text'], '05 1 70 024 Moers')
+        self.assertEqual(package['extras']['metadata_original_portal'],
+                         'http://www.offenedaten.moers.de/')
+
+        self.assertEqual(package['extras']['spatial-text'],
+                         '05 1 70 024 Moers')
+
         self.assertEqual(package['resources'][0]['format'], 'JSON')
+
+
+class RLPHarvesterTest(unittest.TestCase):
+
+    def test_gdi_rlp_package(self):
+
+        package = {'author':                   'RLP',
+                   'author_email':             'rlp@rlp.de',
+                   'groups':                   ['gdi-rp', 'geo'],
+                   'license_id':               'cc-by',
+                   'point_of_contact':         None,
+                   'point_of_contact_address': {'email': None},
+                   'resources':                [{'format': 'pdf'}],
+                   'type':                     None,
+                   'extras':                   {'content_type': 'Kartenebene',
+                                                'terms_of_use': {'license_id':
+                                                                 'cc-by'}}}
+
+        harvester = RLPCKANHarvester()
+        harvester.amend_package(package)
+        self.assertNotIn('gdi-rp', package['groups'])
+        self.assertIn('geo', package['groups'])
+        self.assertEqual(package['type'], 'datensatz')
