@@ -33,9 +33,9 @@ Please make sure, that the CKAN process will have access to the logfile specifie
 
 ## Testing
 
-Unit tests are placed in the `ckanext/govdatade/tests` directory and can be run by executing Python's Test Discovery.
+Unit tests are placed in the `ckanext/govdatade/tests` directory and can be run with the nose unit testing framework:
 
 ```
 $ cd /path/to/virtualenv/src/ckanext-govdatade
-$ python -m unittest discover
+$ nosetests
 ```
