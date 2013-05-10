@@ -71,7 +71,7 @@ class MoersHarvesterTest(unittest.TestCase):
         harvester = MoersCKANHarvester()
         harvester.amend_package(package)
 
-        self.assertNotNone(package['id'])
+        self.assertIsNotNone(package['id'])
         self.assertTrue(package['title'].endswith(' Moers'))
 
         self.assertNotIn(u'ü', package['name'])
