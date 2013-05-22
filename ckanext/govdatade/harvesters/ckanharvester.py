@@ -57,7 +57,7 @@ class GroupCKANHarvester(CKANHarvester):
         else:
             self.config = {}
         self.api_version = 1
-        self.config['api_version'] = '1'
+        self.config['api_version'] = 1
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
 
