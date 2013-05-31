@@ -131,6 +131,7 @@ class BerlinCKANHarvester(GroupCKANHarvester):
         if package['license_id'] == '':
             package['license_id'] = 'notspecified'
 
+        package['type'] = 'datensatz'
         package['groups'] = translate_groups(package['groups'], 'berlin')
         package['extras']['metadata_original_portal'] = 'http://datenregister.berlin.de'
 
