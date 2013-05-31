@@ -181,9 +181,6 @@ class RLPCKANHarvester(GroupCKANHarvester):
         # convert license cc-by-nc to cc-nc
         if package_dict['license_id'] == 'cc-by-nc':
             package_dict['license_id'] == 'cc-nc'
-            package_dict['terms_of_use']['license_id'] = 'cc-nc'
-            package_dict['terms_of_use']['license_title'] = 'Creative Commons: Keine kommerzielle Nutzung 1.0 Generisch'
-            package_dict['terms_of_use']['license_url'] = 'http://creativecommons.org/licenses/nc/1.0/'
 
         # GDI related patch
         if 'gdi-rp' in package_dict['groups']:
