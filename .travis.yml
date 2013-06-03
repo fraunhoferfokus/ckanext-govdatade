@@ -7,6 +7,7 @@ install:
     - pip install -e 'git+https://github.com/okfn/ckan.git@ckan-1.8#egg=ckan' --use-mirrors
     - wget https://raw.github.com/okfn/ckan/ckan-1.8/pip-requirements.txt -O ckan-requirements.txt
     - pip install -r ckan-requirements.txt
+    - touch who.ini
 
 # command to run tests
-script: nosetests --nologcapture
+script: nosetests --with-pylons=test-core.ini --nologcapture
