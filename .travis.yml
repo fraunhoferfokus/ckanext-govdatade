@@ -9,4 +9,4 @@ install:
     - pip install -r ckan-requirements.txt
 
 # command to run tests
-script: nosetests
+script: nosetests --nologcapture

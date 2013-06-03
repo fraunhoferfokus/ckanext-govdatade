@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-from ckan.lib.helpers import json
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
 
 import ConfigParser
+import json
 import logging
 import os
 import urllib2
@@ -42,6 +42,10 @@ def assert_author_fields(package_dict, author_alternative, author_email_alternat
 
     if not package_dict['author']:
         raise ValueError('There is no author for package %s' % package_dict['id'])
+
+
+def resolve_json_incosistency(dataset):
+    return dataset
 
 
 class GroupCKANHarvester(CKANHarvester):
@@ -176,11 +180,11 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 package_dict['extras'][extra_field] = package_dict[extra_field]
                 del package_dict[extra_field]
 
-        package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
-
         # convert license cc-by-nc to cc-nc
-        if package_dict['license_id'] == 'cc-by-nc':
-            package_dict['license_id'] == 'cc-nc'
+        if package_dict['extras']['terms_of_use']['license_id'] == 'cc-by-nc':
+            package_dict['extras']['terms_of_use']['license_id'] == 'cc-nc'
+
+        package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
 
         # GDI related patch
         if 'gdi-rp' in package_dict['groups']:
