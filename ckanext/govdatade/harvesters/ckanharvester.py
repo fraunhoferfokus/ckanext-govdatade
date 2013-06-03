@@ -182,7 +182,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         # convert license cc-by-nc to cc-nc
         if package_dict['extras']['terms_of_use']['license_id'] == 'cc-by-nc':
-            package_dict['extras']['terms_of_use']['license_id'] == 'cc-nc'
+            package_dict['extras']['terms_of_use']['license_id'] = 'cc-nc'
 
         package_dict['license_id'] = package_dict['extras']['terms_of_use']['license_id']
 
