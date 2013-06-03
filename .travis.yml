@@ -8,6 +8,8 @@ install:
     - wget https://raw.github.com/okfn/ckan/ckan-1.8/pip-requirements.txt -O ckan-requirements.txt
     - pip install -r ckan-requirements.txt
     - touch who.ini
+    - pip uninstall Pylons
+    - pip install pylons==1.0
 
 # command to run tests
 script: nosetests --with-pylons=test-core.ini --nologcapture
