@@ -15,6 +15,7 @@ import uuid
 
 config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
+print config_dir
 config.read(config_dir + '/config.ini')
 
 logfile_path = config.get('Logger', 'logfile')
