@@ -159,8 +159,13 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-        schema_url = config.get('URLs', 'schema')
-        groups_url = config.get('URLs', 'groups')
+        try:
+            schema_url = config.get('URLs', 'schema')
+            groups_url = config.get('URLs', 'groups')
+        except ConfigParser.NoSectionError, e:
+            schema_url = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json'
+            groups_url = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json'
+
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
 
