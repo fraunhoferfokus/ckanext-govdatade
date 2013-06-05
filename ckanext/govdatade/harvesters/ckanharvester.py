@@ -17,18 +17,22 @@ config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
 
-logfile_path = config.get('Logger', 'logfile')
-logfile_directory = os.path.dirname(logfile_path)
-if logfile_directory and not os.path.exists(logfile_directory):
-    os.makedirs(logfile_directory)
+try:
+    logfile_path = config.get('Logger', 'logfile')
+    logfile_directory = os.path.dirname(logfile_path)
+    if logfile_directory and not os.path.exists(logfile_directory):
+        os.makedirs(logfile_directory)
 
-formatter = logging.Formatter(config.get('Logger', 'format'))
-fh = logging.FileHandler(logfile_path)
-fh.setFormatter(formatter)
+    formatter = logging.Formatter(config.get('Logger', 'format'))
+    fh = logging.FileHandler(logfile_path)
+    fh.setFormatter(formatter)
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-log.addHandler(fh)
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.DEBUG)
+    log.addHandler(fh)
+except ConfigParser.NoSectionError, e:
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.DEBUG)
 
 
 def assert_author_fields(package_dict, author_alternative, author_email_alternative):
