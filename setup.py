@@ -24,9 +24,6 @@ setup(
 	],
 	entry_points=\
 	"""
-        [nose.plugins]
-        pylons = pylons.test:PylonsPlugin
-
         [ckan.plugins]
         bayern_harvester=ckanext.govdatade.harvesters.ckanharvester:BayernCKANHarvester
         bremen_harvester=ckanext.govdatade.harvesters.ckanharvester:BremenCKANHarvester
