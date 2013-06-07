@@ -1,5 +1,7 @@
 # ckanext-govdatade
 
+[![Build Status](https://travis-ci.org/fraunhoferfokus/ckanext-govdatade.png?branch=master)](https://travis-ci.org/fraunhoferfokus/ckanext-govdatade)
+
 GovData.de specific CKAN extension
 
 ### Dependencies
