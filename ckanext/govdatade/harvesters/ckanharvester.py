@@ -17,22 +17,18 @@ config = ConfigParser.RawConfigParser()
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config.read(config_dir + '/config.ini')
 
-try:
-    logfile_path = config.get('Logger', 'logfile')
-    logfile_directory = os.path.dirname(logfile_path)
-    if logfile_directory and not os.path.exists(logfile_directory):
-        os.makedirs(logfile_directory)
+logfile_path = config.get('Logger', 'logfile')
+logfile_directory = os.path.dirname(logfile_path)
+if logfile_directory and not os.path.exists(logfile_directory):
+    os.makedirs(logfile_directory)
 
-    formatter = logging.Formatter(config.get('Logger', 'format'))
-    fh = logging.FileHandler(logfile_path)
-    fh.setFormatter(formatter)
+formatter = logging.Formatter(config.get('Logger', 'format'))
+fh = logging.FileHandler(logfile_path)
+fh.setFormatter(formatter)
 
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.DEBUG)
-    log.addHandler(fh)
-except ConfigParser.NoSectionError, e:
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.DEBUG)
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log.addHandler(fh)
 
 
 def assert_author_fields(package_dict, author_alternative, author_email_alternative):
@@ -159,12 +155,8 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-        try:
-            schema_url = config.get('URLs', 'schema')
-            groups_url = config.get('URLs', 'groups')
-        except ConfigParser.NoSectionError, e:
-            schema_url = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json'
-            groups_url = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json'
+        schema_url = config.get('URLs', 'schema')
+        groups_url = config.get('URLs', 'groups')
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
