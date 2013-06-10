@@ -12,6 +12,17 @@ import unittest
 
 class BerlinHarvesterTest(unittest.TestCase):
 
+    def test_extras_sector_amendment(self):
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        harvester = BerlinCKANHarvester()
+        harvester.amend_package(dataset)
+        self.assertEqual(dataset['extras']['sector'], 'oeffentlich')
+
     def test_amend_package(self):
 
         package = {'license_title': '',
