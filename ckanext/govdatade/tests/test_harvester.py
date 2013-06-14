@@ -14,14 +14,36 @@ class BerlinHarvesterTest(unittest.TestCase):
 
     def test_extras_sector_amendment(self):
 
+        harvester = BerlinCKANHarvester()
+
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
                    'extras': {'metadata_original_portal': None}}
 
-        harvester = BerlinCKANHarvester()
-        harvester.amend_package(dataset)
+        valid = harvester.amend_package(dataset)
         self.assertEqual(dataset['extras']['sector'], 'oeffentlich')
+        self.assertTrue(valid)
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None,
+                              'sector':                   'privat'}}
+
+        valid = harvester.amend_package(dataset)
+        self.assertEqual(dataset['extras']['sector'], 'privat')
+        self.assertFalse(valid)
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None,
+                              'sector':                   'andere'}}
+
+        valid = harvester.amend_package(dataset)
+        self.assertEqual(dataset['extras']['sector'], 'andere')
+        self.assertFalse(valid)
 
     def test_amend_package(self):
 

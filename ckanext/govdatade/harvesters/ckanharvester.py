@@ -132,16 +132,29 @@ class BerlinCKANHarvester(GroupCKANHarvester):
 
     def amend_package(self, package):
 
+        extras = package['extras']
+
         if package['license_id'] == '':
             package['license_id'] = 'notspecified'
 
+        # if sector is not set, set it to 'oeffentlich' (default)
+        extras['sector'] = extras.get('sector', 'oeffentlich')
+
+        if package['extras']['sector'] != 'oeffentlich':
+            return False
+
         package['type'] = 'datensatz'
         package['groups'] = translate_groups(package['groups'], 'berlin')
-        package['extras']['metadata_original_portal'] = 'http://datenregister.berlin.de'
+        extras['metadata_original_portal'] = 'http://datenregister.berlin.de'
+        return True
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
-        self.amend_package(package_dict)
+        valid = self.amend_package(package_dict)
+
+        if not valid:
+            return  # drop package
+
         harvest_object.content = json.dumps(package_dict)
         super(BerlinCKANHarvester, self).import_stage(harvest_object)
 
