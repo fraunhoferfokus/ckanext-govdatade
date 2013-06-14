@@ -144,7 +144,8 @@ class BerlinCKANHarvester(GroupCKANHarvester):
         if package['extras']['sector'] != 'oeffentlich':
             return False
 
-        if not package.get('type'):
+        valid_types = ['datensatz', 'dokument', 'app']
+        if not package.get('type') or package['type'] not in valid_types:
             package['type'] = 'datensatz'
 
         package['groups'] = translate_groups(package['groups'], 'berlin')

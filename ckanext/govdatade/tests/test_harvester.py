@@ -95,6 +95,15 @@ class BerlinHarvesterTest(unittest.TestCase):
         self.assertEqual(package['type'], 'app')
         self.assertTrue(valid)
 
+        package = {'type': 'garbage',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(package)
+        self.assertEqual(package['type'], 'datensatz')
+        self.assertTrue(valid)
+
     def test_amend_package(self):
 
         package = {'license_title': '',
