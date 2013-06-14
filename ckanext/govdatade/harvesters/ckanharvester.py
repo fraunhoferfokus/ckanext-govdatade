@@ -138,7 +138,8 @@ class BerlinCKANHarvester(GroupCKANHarvester):
             package['license_id'] = 'notspecified'
 
         # if sector is not set, set it to 'oeffentlich' (default)
-        extras['sector'] = extras.get('sector', 'oeffentlich')
+        if not extras.get('sector'):
+            extras['sector'] = 'oeffentlich'
 
         if package['extras']['sector'] != 'oeffentlich':
             return False
