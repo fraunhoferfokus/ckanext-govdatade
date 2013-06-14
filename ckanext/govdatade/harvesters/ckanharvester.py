@@ -107,7 +107,7 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         # add tag for better searchability
         package['tags'].append(u'Hamburg')
-        assert_author_fields(package, package['maintainer'],
+        aassert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
     def import_stage(self, harvest_object):
@@ -149,7 +149,9 @@ class BerlinCKANHarvester(GroupCKANHarvester):
             package['type'] = 'datensatz'
 
         package['groups'] = translate_groups(package['groups'], 'berlin')
-        extras['metadata_original_portal'] = 'http://datenregister.berlin.de'
+        default_portal = 'http://datenregister.berlin.de'
+        if not extras.get('metadata_original_portal'):
+            extras['metadata_original_portal'] =  default_portal
         return True
 
     def import_stage(self, harvest_object):

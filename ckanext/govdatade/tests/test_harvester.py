@@ -104,6 +104,41 @@ class BerlinHarvesterTest(unittest.TestCase):
         self.assertEqual(package['type'], 'datensatz')
         self.assertTrue(valid)
 
+    def test_amend_portal(self):
+
+        harvester = BerlinCKANHarvester()
+        default = 'http://datenregister.berlin.de'
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {}}
+
+        valid = harvester.amend_package(dataset)
+        portal = dataset['extras']['metadata_original_portal']
+        self.assertEqual(portal, default)
+        self.assertTrue(valid)
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(dataset)
+        portal = dataset['extras']['metadata_original_portal']
+        self.assertEqual(portal, default)
+        self.assertTrue(valid)
+
+        dataset = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': 'www.example.com'}}
+
+        valid = harvester.amend_package(dataset)
+        portal = dataset['extras']['metadata_original_portal']
+        self.assertEqual(portal, 'www.example.com')
+        self.assertTrue(valid)
+
     def test_amend_package(self):
 
         package = {'license_title': '',
