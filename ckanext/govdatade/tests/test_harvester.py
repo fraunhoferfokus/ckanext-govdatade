@@ -55,6 +55,46 @@ class BerlinHarvesterTest(unittest.TestCase):
         self.assertEqual(dataset['extras']['sector'], 'andere')
         self.assertFalse(valid)
 
+    def test_type_amendment(self):
+
+        harvester = BerlinCKANHarvester()
+
+        package = {'type': None,
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(package)
+        self.assertEqual(package['type'], 'datensatz')
+        self.assertTrue(valid)
+
+        package = {'type': 'datensatz',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(package)
+        self.assertEqual(package['type'], 'datensatz')
+        self.assertTrue(valid)
+
+        package = {'type': 'dokument',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(package)
+        self.assertEqual(package['type'], 'dokument')
+        self.assertTrue(valid)
+
+        package = {'type': 'app',
+                   'groups': [],
+                   'license_id': None,
+                   'extras': {'metadata_original_portal': None}}
+
+        valid = harvester.amend_package(package)
+        self.assertEqual(package['type'], 'app')
+        self.assertTrue(valid)
+
     def test_amend_package(self):
 
         package = {'license_title': '',

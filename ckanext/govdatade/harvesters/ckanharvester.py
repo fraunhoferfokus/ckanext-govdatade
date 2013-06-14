@@ -144,7 +144,9 @@ class BerlinCKANHarvester(GroupCKANHarvester):
         if package['extras']['sector'] != 'oeffentlich':
             return False
 
-        package['type'] = 'datensatz'
+        if not package.get('type'):
+            package['type'] = 'datensatz'
+
         package['groups'] = translate_groups(package['groups'], 'berlin')
         extras['metadata_original_portal'] = 'http://datenregister.berlin.de'
         return True
