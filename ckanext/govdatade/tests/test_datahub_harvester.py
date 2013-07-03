@@ -8,7 +8,7 @@ import unittest
 
 class DataHubIOHarvesterTest(unittest.TestCase):
 
-    def test_harvest_package(self):
+    def test_package_valid(self):
 
         harvester = DatahubCKANHarvester()
 
@@ -21,11 +21,19 @@ class DataHubIOHarvesterTest(unittest.TestCase):
         invalid_package2 = '_hbz_unioncatalog'
         invalid_package3 = 'xxx'
 
-        self.assertTrue(harvester.harvest_package(valid_package1))
-        self.assertTrue(harvester.harvest_package(valid_package2))
-        self.assertTrue(harvester.harvest_package(valid_package3))
-        self.assertTrue(harvester.harvest_package(valid_package4))
+        self.assertTrue(harvester.package_valid(valid_package1))
+        self.assertTrue(harvester.package_valid(valid_package2))
+        self.assertTrue(harvester.package_valid(valid_package3))
+        self.assertTrue(harvester.package_valid(valid_package4))
 
-        self.assertFalse(harvester.harvest_package(invalid_package1))
-        self.assertFalse(harvester.harvest_package(invalid_package2))
-        self.assertFalse(harvester.harvest_package(invalid_package3))
+        self.assertFalse(harvester.package_valid(invalid_package1))
+        self.assertFalse(harvester.package_valid(invalid_package2))
+        self.assertFalse(harvester.package_valid(invalid_package3))
+
+    def test_amend_package(self):
+
+        harvester = DatahubCKANHarvester()
+        package = {'extras': {}}
+        harvester.amend_package(package)
+        portal = package['extras']['metadata_original_portal']
+        self.assertEqual(portal, 'http://datahub.io/')

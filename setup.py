@@ -33,5 +33,6 @@ setup(
         moers_harvester=ckanext.govdatade.harvesters.ckanharvester:MoersCKANHarvester
         rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
         govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
+        datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
 	""",
 )

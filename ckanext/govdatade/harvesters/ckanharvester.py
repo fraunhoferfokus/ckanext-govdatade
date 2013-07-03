@@ -65,6 +65,17 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
 
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('Rostock: ' + str(e))
+            return
+        harvest_object.content = json.dumps(package_dict)
+        super(GroupCKANHarvester, self).import_stage(harvest_object)
+
 
 class RostockCKANHarvester(GroupCKANHarvester):
     """A CKAN Harvester for Rostock solving data compatibility problems."""
@@ -474,8 +485,11 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
         harvest_object.content = json.dumps(package)
         super(GovAppsHarvester, self).import_stage(harvest_object)
 
+
 class DatahubCKANHarvester(GroupCKANHarvester):
     """A CKAN Harvester for Datahub IO importing a small set of packages."""
+
+    portal = 'http://datahub.io/'
 
     valid_packages = ['hbz_unioncatalog', 'lobid-resources',
                       'deutsche-nationalbibliografie-dnb',
@@ -484,10 +498,37 @@ class DatahubCKANHarvester(GroupCKANHarvester):
     def info(self):
         return {'name':        'datahub',
                 'title':       'Datahub IO Harvester',
-                'description': 'A CKAN Harvester for Datahub IO importing a small set of packages.'}
+                'description': 'A CKAN Harvester for Datahub IO importing a '
+                               'small set of packages.'}
+
+    def fetch_stage(self, harvest_object):
+        log.debug('In CKANHarvester fetch_stage')
+        self._set_config(harvest_object.job.source.config)
+
+        if harvest_object.guid not in DatahubCKANHarvester.valid_packages:
+            return None
+
+        # Get source URL
+        url = harvest_object.source.url.rstrip('/')
+        url = url + self._get_rest_api_offset() + '/package/'
+        + harvest_object.guid
+
+        # Get contents
+        try:
+            content = self._get_content(url)
+        except Exception, e:
+            self._save_object_error('Unable to get content for package: %s: %r'
+                                    % (url, e), harvest_object)
+            return None
+
+        # Save the fetched contents in the HarvestObject
+        harvest_object.content = content
+        harvest_object.save()
+        return True
+
+    def package_valid(self, package_name):
+        return package_name in DatahubCKANHarvester.valid_packages
 
     def amend_package(self, package_dict):
-        pass
-
-    def harvest_package(self, package_name):
-        return False
+        portal = DatahubCKANHarvester.portal
+        package_dict['extras']['metadata_original_portal'] = portal
