@@ -54,6 +54,12 @@ class GroupCKANHarvester(CKANHarvester):
     api_version = 1
     """Enforce API version 1 for enabling group import"""
 
+    def __init__(self):
+        schema_url = config.get('URLs', 'schema')
+        groups_url = config.get('URLs', 'groups')
+        self.schema = json.loads(urllib2.urlopen(schema_url).read())
+        self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
+
     def _set_config(self, config_str):
         """Enforce API version 1 for enabling group import"""
         if config_str:
@@ -118,7 +124,7 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         # add tag for better searchability
         package['tags'].append(u'Hamburg')
-        assert_author_fields(package, package['maintainer'],
+        aassert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
     def import_stage(self, harvest_object):
@@ -511,14 +517,14 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         # Get source URL
         url = harvest_object.source.url.rstrip('/')
         url = url + self._get_rest_api_offset() + '/package/'
-        + harvest_object.guid
+        url = url + harvest_object.guid
 
         # Get contents
         try:
             content = self._get_content(url)
         except Exception, e:
-            self._save_object_error('Unable to get content for package: %s: %r'
-                                    % (url, e), harvest_object)
+            self._save_object_error('Unable to get content for package:'
+                                    '%s: %r' % (url, e), harvest_object)
             return None
 
         # Save the fetched contents in the HarvestObject
@@ -532,3 +538,6 @@ class DatahubCKANHarvester(GroupCKANHarvester):
     def amend_package(self, package_dict):
         portal = DatahubCKANHarvester.portal
         package_dict['extras']['metadata_original_portal'] = portal
+        package_dict['groups'].append('bildung_wissenschaft')
+        package_dict['groups'] = [group for group in package_dict['groups']
+                                  if group in self.govdata_groups]
