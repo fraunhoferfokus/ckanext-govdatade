@@ -118,7 +118,7 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         # add tag for better searchability
         package['tags'].append(u'Hamburg')
-        aassert_author_fields(package, package['maintainer'],
+        assert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
     def import_stage(self, harvest_object):
