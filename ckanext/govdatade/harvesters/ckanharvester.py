@@ -473,3 +473,21 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         super(GovAppsHarvester, self).import_stage(harvest_object)
+
+class DatahubCKANHarvester(GroupCKANHarvester):
+    """A CKAN Harvester for Datahub IO importing a small set of packages."""
+
+    valid_packages = ['hbz_unioncatalog', 'lobid-resources',
+                      'deutsche-nationalbibliografie-dnb',
+                      'dnb-gemeinsame-normdatei']
+
+    def info(self):
+        return {'name':        'datahub',
+                'title':       'Datahub IO Harvester',
+                'description': 'A CKAN Harvester for Datahub IO importing a small set of packages.'}
+
+    def amend_package(self, package_dict):
+        pass
+
+    def harvest_package(self, package_name):
+        return False
