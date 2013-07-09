@@ -191,6 +191,34 @@ class BerlinHarvesterTest(unittest.TestCase):
 
 class MoersHarvesterTest(unittest.TestCase):
 
+    def test_title_amendment(self):
+
+        publisher = {'role': 'veroeffentlichende_stelle',
+                     'name': 'name',
+                     'email': 'email'}
+
+        maintainer = {'role': 'ansprechpartner',
+                      'name': 'name',
+                      'email': 'email'}
+
+        valid_package = {'name': 'name',
+                         'title': 'Adressen in Moers',
+                         'resources': [],
+                         'extras': {'contacts': [publisher, maintainer],
+                                    'terms_of_use': {'license_id': 'id'}}}
+
+        invalid_package = {'name': 'name',
+                          'title': 'Straßennamen',
+                          'resources': [],
+                          'extras': {'contacts': [publisher, maintainer],
+                                     'terms_of_use': {'license_id': 'id'}}}
+
+        harvester = MoersCKANHarvester()
+        harvester.amend_package(valid_package)
+        harvester.amend_package(invalid_package)
+        self.assertEqual(valid_package['title'], 'Adressen in Moers')
+        self.assertEqual(invalid_package['title'], 'Straßennamen Moers')
+
     def test_amend_package(self):
         directory = os.path.dirname(os.path.abspath(__file__))
         moers_file = open(directory + '/moers.json')
