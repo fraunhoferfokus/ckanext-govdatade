@@ -418,8 +418,11 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
 
     def amend_package(self, package):
 
-        publisher = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])[0]
-        maintainer = filter(lambda x: x['role'] == 'ansprechpartner', package['extras']['contacts'])[0]
+        publishers = filter(lambda x: x['role'] == 'veroeffentlichende_stelle', package['extras']['contacts'])
+        maintainers = filter(lambda x: x['role'] == 'ansprechpartner', package['extras']['contacts'])
+
+        if not publishers:
+            raise ValueError('There is no author email for package %s' % package_dict['id'])
 
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['name'] = package['name'].lower()
@@ -428,9 +431,11 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
             package['title'] = package['title'] + ' Moers'
 
         package['author'] = 'Stadt Moers'
-        package['author_email'] = publisher['email']
-        package['maintainer'] = maintainer['name']
-        package['maintainer_email'] = maintainer['email']
+        package['author_email'] = publishers[0]['email']
+
+        if maintainers:
+            package['maintainer'] = maintainers[0]['name']
+            package['maintainer_email'] = maintainers[0]['email']
 
         package['license_id'] = package['extras']['terms_of_use']['license_id']
         package['extras']['metadata_original_portal'] = 'http://www.offenedaten.moers.de/'
@@ -438,12 +443,11 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
         if not "spatial-text" in package["extras"].keys():
             package["extras"]["spatial-text"] = '05 1 70 024 Moers'
 
-        if 'tags' not in package:
-            package['tags'] = []
-
         if isinstance(package['tags'], basestring):
-            package['tags'] = [package['tags']]
-
+            if not package['tags']:  # if tags was set to "" or null
+                package['tags'] = []
+            else:
+                package['tags'] = [package['tags']]
         package['tags'].append('moers')
 
         for resource in package['resources']:
