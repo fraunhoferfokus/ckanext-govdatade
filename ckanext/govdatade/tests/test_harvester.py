@@ -204,12 +204,14 @@ class MoersHarvesterTest(unittest.TestCase):
         valid_package = {'name': 'name',
                          'title': 'Adressen in Moers',
                          'resources': [],
+                         'tags': [],
                          'extras': {'contacts': [publisher, maintainer],
                                     'terms_of_use': {'license_id': 'id'}}}
 
         invalid_package = {'name': 'name',
                           'title': 'Straßennamen',
                           'resources': [],
+                          'tags': [],
                           'extras': {'contacts': [publisher, maintainer],
                                      'terms_of_use': {'license_id': 'id'}}}
 
