@@ -33,10 +33,13 @@ class DataHubIOHarvesterTest(unittest.TestCase):
     def test_amend_package(self):
 
         harvester = DatahubCKANHarvester()
-        package = {'groups': ['bibliographic', 'lld', 'bibsoup'],
+        package = {'name': 'Package Name',
+                   'description': '   ',
+                   'groups': ['bibliographic', 'lld', 'bibsoup'],
                    'extras': {}}
 
         harvester.amend_package(package)
         portal = package['extras']['metadata_original_portal']
         self.assertEqual(portal, 'http://datahub.io/')
         self.assertEqual(package['groups'], ['bildung_wissenschaft'])
+        self.assertEqual(package['description'], package['name'])

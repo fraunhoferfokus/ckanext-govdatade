@@ -544,6 +544,13 @@ class DatahubCKANHarvester(GroupCKANHarvester):
 
     def amend_package(self, package_dict):
         portal = DatahubCKANHarvester.portal
+
+        # Currently, only the description is displayed. Some datasets only have
+        # a descriptive name, but no description. Hence, it is copied if unset.
+        description = package_dict['description']
+        if not description or description.isspace():
+            package_dict['description'] = package_dict['name']
+
         package_dict['extras']['metadata_original_portal'] = portal
         package_dict['groups'].append('bildung_wissenschaft')
         package_dict['groups'] = [group for group in package_dict['groups']
