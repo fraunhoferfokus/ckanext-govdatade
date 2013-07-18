@@ -547,9 +547,10 @@ class DatahubCKANHarvester(GroupCKANHarvester):
 
         # Currently, only the description is displayed. Some datasets only have
         # a descriptive name, but no description. Hence, it is copied if unset.
-        description = package_dict['description']
-        if not description or description.isspace():
-            package_dict['description'] = package_dict['name']
+        for resource in package_dict['resources']:
+            description = resource['description']
+            if not description or description.isspace():
+                resource['description'] = resource['name']
 
         package_dict['extras']['metadata_original_portal'] = portal
         package_dict['groups'].append('bildung_wissenschaft')
