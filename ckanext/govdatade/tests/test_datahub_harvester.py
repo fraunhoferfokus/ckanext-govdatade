@@ -36,10 +36,10 @@ class DataHubIOHarvesterTest(unittest.TestCase):
         package = {'name': 'Package Name',
                    'description': '   ',
                    'groups': ['bibliographic', 'lld', 'bibsoup'],
+                   'resources': [],
                    'extras': {}}
 
         harvester.amend_package(package)
         portal = package['extras']['metadata_original_portal']
         self.assertEqual(portal, 'http://datahub.io/')
         self.assertEqual(package['groups'], ['bildung_wissenschaft'])
-        self.assertEqual(package['description'], package['name'])
