@@ -545,6 +545,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
     def amend_package(self, package_dict):
         portal = DatahubCKANHarvester.portal
 
+        package_dict['type'] = 'datensatz'
         # Currently, only the description is displayed. Some datasets only have
         # a descriptive name, but no description. Hence, it is copied if unset.
         for resource in package_dict['resources']:

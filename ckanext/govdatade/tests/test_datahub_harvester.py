@@ -43,3 +43,4 @@ class DataHubIOHarvesterTest(unittest.TestCase):
         portal = package['extras']['metadata_original_portal']
         self.assertEqual(portal, 'http://datahub.io/')
         self.assertEqual(package['groups'], ['bildung_wissenschaft'])
+        self.assertEqual(package['type'], 'datensatz')
