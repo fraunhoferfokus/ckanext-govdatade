@@ -22,17 +22,20 @@ setup(
 	install_requires=[
 		# -*- Extra requirements: -*-
 	],
-	entry_points=\
-	"""
-        [ckan.plugins]
-        bayern_harvester=ckanext.govdatade.harvesters.ckanharvester:BayernCKANHarvester
-        bremen_harvester=ckanext.govdatade.harvesters.ckanharvester:BremenCKANHarvester
-        hamburg_harvester=ckanext.govdatade.harvesters.ckanharvester:HamburgCKANHarvester
-        rlp_harvester=ckanext.govdatade.harvesters.ckanharvester:RLPCKANHarvester
-        berlin_harvester=ckanext.govdatade.harvesters.ckanharvester:BerlinCKANHarvester
-        moers_harvester=ckanext.govdatade.harvesters.ckanharvester:MoersCKANHarvester
-        rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
-        govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
-        datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
-	""",
+    entry_points=\
+    """
+    [ckan.plugins]
+    bayern_harvester=ckanext.govdatade.harvesters.ckanharvester:BayernCKANHarvester
+    bremen_harvester=ckanext.govdatade.harvesters.ckanharvester:BremenCKANHarvester
+    hamburg_harvester=ckanext.govdatade.harvesters.ckanharvester:HamburgCKANHarvester
+    rlp_harvester=ckanext.govdatade.harvesters.ckanharvester:RLPCKANHarvester
+    berlin_harvester=ckanext.govdatade.harvesters.ckanharvester:BerlinCKANHarvester
+    moers_harvester=ckanext.govdatade.harvesters.ckanharvester:MoersCKANHarvester
+    rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
+    govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
+    datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
+
+    [paste.paster_command]
+    validator = ckanext.govdatade.commands.validator:Validator
+    """,
 )
