@@ -37,5 +37,8 @@ setup(
 
     [paste.paster_command]
     validator = ckanext.govdatade.commands.validator:Validator
+
+    [nose.plugins]
+    pylons = pylons.test:PylonsPlugin
     """,
 )

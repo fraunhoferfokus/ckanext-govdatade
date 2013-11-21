@@ -15,11 +15,11 @@ If you are using Python virtual environment (virtualenv), activate it.
 ```
 $ pip install -e git+git://github.com/fraunhoferfokus/ckanext-govdatade.git#egg=ckanext-govdatade
 $ cd /path/to/virtualenv/src/ckanext-govdatade
-$ pip install -r pip-requirements
+$ pip install -r requirements.txt
 $ python setup.py develop
 
 $ cd /path/to/virtualenv/src/ckanext-harvester
-$ pip install -r pip-requirements
+$ pip install -r pip-requirements.txt
 $ python setup.py develop
 ```
 
