@@ -32,16 +32,21 @@ def test_invalid_json():
     assert normalize_extras(source) == 'test'
 
 
-def test_string_encoded_integers():
+def test_string_encoded_integer():
     source = json.dumps({'a': '1'})
     assert normalize_extras(source) == {'a': '1'}
 
 
-def test_string_encoded_floats():
+def test_string_encoded_float():
     source = json.dumps({'a': '3.5'})
     assert normalize_extras(source) == {'a': '3.5'}
 
 
-def test_string_encoded_booleans():
+def test_string_encoded_boolean():
     source = json.dumps({'a': 'true'})
     assert normalize_extras(source) == {'a': 'true'}
+
+
+def test_string_encoded_string():
+    source = json.dumps({'a': '"string"'})
+    assert normalize_extras(source) == {'a': 'string'}
