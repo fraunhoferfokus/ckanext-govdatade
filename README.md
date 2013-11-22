@@ -12,7 +12,7 @@ The GovData.de harvester relies on a group import feature, which is currently no
 
 If you are using Python virtual environment (virtualenv), activate it.
 
-```
+```bash
 $ pip install -e git+git://github.com/fraunhoferfokus/ckanext-govdatade.git#egg=ckanext-govdatade
 $ cd /path/to/virtualenv/src/ckanext-govdatade
 $ pip install -r requirements.txt
@@ -25,8 +25,8 @@ $ python setup.py develop
 
 Add the following plugins to your CKAN configuration file:
 
-```
-ckan.plugins = harvest ckan_harvester hamburg_harvester rlp_harvester berlin_harvester
+```ini
+ckan.plugins = stats harvest ckan_harvester bayern_harvester bremen_harvester hamburg_harvester rlp_harvester berlin_harvester moers_harvester rostock_harvester govapps_harvester datahub_harvester
 ```
 
 Please make sure, that the CKAN process will have access to the logfile specified in `/path/to/virtualenv/src/ckanext-govdata/ckanext/govdatade/harvesters/config.ini`. After restarting CKAN the plugins should be ready to use.
@@ -37,7 +37,7 @@ Please make sure, that the CKAN process will have access to the logfile specifie
 
 Unit tests are placed in the `ckanext/govdatade/tests` directory and can be run with the nose unit testing framework:
 
-```
+```bash
 $ cd /path/to/virtualenv/src/ckanext-govdatade
 $ nosetests
 ```
