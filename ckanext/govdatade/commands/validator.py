@@ -4,7 +4,7 @@
 from ckan import model
 from ckan.lib.cli import CkanCommand
 from ckan.logic import get_action
-from ckanext.govdatade.util import normalize_extras
+from ckanext.govdatade.util import normalize_action_dataset
 from jsonschema.validators import Draft3Validator
 
 import ckanclient
@@ -30,24 +30,30 @@ class Validator(CkanCommand):
                        'session':     model.Session,
                        'ignore_auth': True}
 
-            get_action('package_list')(context, {})
+            # get_action('package_list')(context, {})
         else:
             endpoint = self.args[0]
             ckan = ckanclient.CkanClient(base_location=endpoint)
 
-            package_list = ckan.package_list()
+            packages = []
+            count = 0
+            while True:
+                print 'Retreive the %sth batch' % (count + 1000)
+
+                response = ckan.action('package_search', rows=1000)
+                packages += response['results']
+
+                count += 1000
+                if count > response['count']:
+                    break
+
             invalid_packages = 0
             broken_rules = 0
 
-            for i, package_id in enumerate(ckan.package_list()):
-                print 'Processing %s of %s' % (i, len(package_list))
+            for i, package in enumerate(packages):
+                print 'Processing %s of %s' % (i, len(packages))
 
-                try:
-                    package = ckan.package_entity_get(package_id)
-                except ckanclient.CkanApiError:
-                    print 'Error %s' % package_id
-
-                package['extras'] = normalize_extras(package['extras'])
+                normalize_action_dataset(package)
                 errors = Draft3Validator(self.schema).iter_errors(package)
 
                 if not Draft3Validator(self.schema).is_valid(package):
@@ -55,9 +61,7 @@ class Validator(CkanCommand):
                     errors = Draft3Validator(self.schema).iter_errors(package)
                     for error in errors:
                         broken_rules += 1
-
-                # for error in errors:
-                #    print "%s -> %s" % (list(error.path), error.message)
+                        print "%s -> %s" % (list(error.path), error.message)
 
             print 'Broken Rules: %s' % broken_rules
             print 'Invalid Packages: %s' % invalid_packages
