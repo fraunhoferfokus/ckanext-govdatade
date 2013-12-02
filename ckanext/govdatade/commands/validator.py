@@ -6,6 +6,8 @@ from ckan.lib.cli import CkanCommand
 from ckan.logic import get_action
 from ckanext.govdatade.util import normalize_action_dataset
 from jsonschema.validators import Draft3Validator
+from math import ceil
+from pprint import pprint
 
 import ckanclient
 import json
@@ -23,6 +25,43 @@ class Validator(CkanCommand):
         super(Validator, self).__init__(name)
         self.schema = json.loads(urllib2.urlopen(self.SCHEMA_URL).read())
 
+    def get_dataset_count(self, ckan):
+        print 'Retrieve total number of datasets'
+        return ckan.action('package_search', rows=1)['count']
+
+    def get_datasets(self, ckan, rows, i):
+        datasets = (i * 1000) + 1
+        print 'Retrieve datasets %s - %s' % (datasets, datasets + rows)
+
+        records = ckan.action('package_search', rows=rows, start=rows * i)
+        return records['results']
+
+    def validate_datasets(self, datasets):
+        invalid_packages = 0
+        broken_rules_count = 0
+        broken_rules = {}
+
+        print 'Validate datasets'
+        for i, dataset in enumerate(datasets):
+            identifier = dataset['id']
+            broken_rules[identifier] = {}
+
+            normalize_action_dataset(dataset)
+            errors = Draft3Validator(self.schema).iter_errors(dataset)
+
+            if not Draft3Validator(self.schema).is_valid(dataset):
+                invalid_packages += 1
+                errors = Draft3Validator(self.schema).iter_errors(dataset)
+
+                for error in errors:
+                    broken_rules_count += 1
+                    msg = error.message
+
+                    path = str(list(error.path))
+                    broken_rules[identifier][path] = msg
+
+        return invalid_packages, broken_rules_count, broken_rules
+
     def command(self):
 
         if len(self.args) == 0:
@@ -30,38 +69,29 @@ class Validator(CkanCommand):
                        'session':     model.Session,
                        'ignore_auth': True}
 
-            # get_action('package_list')(context, {})
+            get_action('package_list')(context, {})
         else:
             endpoint = self.args[0]
             ckan = ckanclient.CkanClient(base_location=endpoint)
 
-            packages = []
-            count = 0
-            while True:
-                print 'Retreive the %sth batch' % (count + 1000)
+            ds = 0
+            rs = 0
+            br = {}
 
-                response = ckan.action('package_search', rows=1000)
-                packages += response['results']
+            rows = 1000
+            total = self.get_dataset_count(ckan)
+            steps = int(ceil(total / float(rows)))
 
-                count += 1000
-                if count > response['count']:
-                    break
+            for i in range(0, steps):
+                if i == steps - 1:
+                    rows = total - (i * rows)
 
-            invalid_packages = 0
-            broken_rules = 0
+                datasets = self.get_datasets(ckan, rows, i)
+                d, r, b = self.validate_datasets(datasets)
+                ds += d
+                rs += r
+                br = dict(br.items() + b.items())
 
-            for i, package in enumerate(packages):
-                print 'Processing %s of %s' % (i, len(packages))
-
-                normalize_action_dataset(package)
-                errors = Draft3Validator(self.schema).iter_errors(package)
-
-                if not Draft3Validator(self.schema).is_valid(package):
-                    invalid_packages += 1
-                    errors = Draft3Validator(self.schema).iter_errors(package)
-                    for error in errors:
-                        broken_rules += 1
-                        print "%s -> %s" % (list(error.path), error.message)
-
-            print 'Broken Rules: %s' % broken_rules
-            print 'Invalid Packages: %s' % invalid_packages
+            print 'Broken Rules: %s' % rs
+            print 'Invalid Packages: %s' % ds
+            pprint(br)
