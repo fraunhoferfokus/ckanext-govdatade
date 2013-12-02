@@ -5,9 +5,9 @@ from ckan import model
 from ckan.lib.cli import CkanCommand
 from ckan.logic import get_action
 from ckanext.govdatade.util import normalize_action_dataset
+from jinja2 import Environment, FileSystemLoader
 from jsonschema.validators import Draft3Validator
 from math import ceil
-from pprint import pprint
 
 import ckanclient
 import json
@@ -31,12 +31,22 @@ class Validator(CkanCommand):
 
     def get_datasets(self, ckan, rows, i):
         datasets = (i * 1000) + 1
-        print 'Retrieve datasets %s - %s' % (datasets, datasets + rows)
+        print 'Retrieve datasets %s - %s' % (datasets, datasets + rows - 1)
 
         records = ckan.action('package_search', rows=rows, start=rows * i)
         return records['results']
 
-    def validate_datasets(self, datasets):
+    def render_template(self, data):
+        environment = Environment(loader=FileSystemLoader('lib/templates'))
+        template = environment.get_template('validation.html.jinja2')
+        return template.render(data)
+
+    def write_validation_result(self, rendered_template):
+        fd = open('output/validation.html', 'w')
+        fd.write(rendered_template)
+        fd.close()
+
+    def validate_datasets(self, datasets, data):
         invalid_packages = 0
         broken_rules_count = 0
         broken_rules = {}
@@ -44,18 +54,35 @@ class Validator(CkanCommand):
         print 'Validate datasets'
         for i, dataset in enumerate(datasets):
             identifier = dataset['id']
+
             broken_rules[identifier] = {}
 
             normalize_action_dataset(dataset)
+
+            extras = dataset['extras']
+            portal = extras.get('metadata_original_portal', None)
+
+            data_providers = data['data_provider']
+            data_providers[portal] = data_providers.get(portal, 0)
+
             errors = Draft3Validator(self.schema).iter_errors(dataset)
 
             if not Draft3Validator(self.schema).is_valid(dataset):
+                data['broken_rules'][identifier] = []
+
                 invalid_packages += 1
+                data_providers[portal] += 1
+
                 errors = Draft3Validator(self.schema).iter_errors(dataset)
 
                 for error in errors:
                     broken_rules_count += 1
                     msg = error.message
+
+                    path = [e for e in error.path if isinstance(e, basestring)]
+                    path = str(' -> '.join(map((lambda e: str(e)), path)))
+                    data['paths'][path] = data['paths'].get(path, 0) + 1
+                    data['broken_rules'][identifier].append([path, msg])
 
                     path = str(list(error.path))
                     broken_rules[identifier][path] = msg
@@ -78,6 +105,8 @@ class Validator(CkanCommand):
             rs = 0
             br = {}
 
+            data = {'paths': {}, 'data_provider': {}, 'broken_rules': {}}
+
             rows = 1000
             total = self.get_dataset_count(ckan)
             steps = int(ceil(total / float(rows)))
@@ -87,11 +116,11 @@ class Validator(CkanCommand):
                     rows = total - (i * rows)
 
                 datasets = self.get_datasets(ckan, rows, i)
-                d, r, b = self.validate_datasets(datasets)
+                d, r, b = self.validate_datasets(datasets, data)
                 ds += d
                 rs += r
                 br = dict(br.items() + b.items())
 
-            print 'Broken Rules: %s' % rs
-            print 'Invalid Packages: %s' % ds
-            pprint(br)
+            data['number_total_datasets'] = total
+            data['number_valid_datasets'] = total - ds
+            self.write_validation_result(self.render_template(data))

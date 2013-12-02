@@ -1,4 +1,5 @@
 # ckanext-harvester with additional features and fixed supporting CKAN 1.8
 -e git+https://github.com/fraunhoferfokus/ckanext-harvest.git@govdatade-compliant#egg=ckanext-harvest
 nose
+jinja2
 jsonschema

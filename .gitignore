@@ -5,3 +5,6 @@ syntax: glob
 *~
 .ropeproject
 dist
+
+output/validation.html
+*.log

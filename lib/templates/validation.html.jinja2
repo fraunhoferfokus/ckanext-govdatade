@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Schema Validation</title>
+  <link rel="stylesheet" href="../lib/vendor/css/bootstrap.min.css">
+</head>
+<body>
+  <h1>Schema Validation</h1>
+  <h2>Valid {{ number_valid_datasets }} of {{ number_total_datasets }}</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Data Provider</th>
+        <th>Invalid Packages</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for data_provider, count in data_provider.iteritems() %}
+        <tr>
+          <td>{{ data_provider }}</td>
+          <td>{{ count }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Path</th>
+        <th>Broken Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for path, count in paths.iteritems() %}
+        <tr>
+          <td>{{ path }}</td>
+          <td>{{ count }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Package ID</th>
+        <th>Broken Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for package_id, errors in broken_rules.iteritems() %}
+        {% for error in errors %}
+          <tr>
+            <td>{{ package_id }}</td>
+            <td><a href="#" data-toggle="tooltip" title="{{ error[0] }}">{{ error[1] }}</a></td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+  <script type="text/javascript" src="../lib/vendor/js/bootstrap.min.js"></script>
+</body>
+</html>
