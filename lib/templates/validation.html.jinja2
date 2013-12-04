@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>Schema Validation</h1>
-  <h2>Valid {{ number_valid_datasets }} of {{ number_total_datasets }}</h2>
+  <h2>Valid {{valid_datasets }} of {{ valid_datasets + invalid_datasets }}</h2>
   <table class="table table-striped">
     <thead>
       <tr>
@@ -16,10 +16,10 @@
       </tr>
     </thead>
     <tbody>
-      {% for data_provider, count in data_provider.iteritems() %}
+      {% for data_provider, incidents in broken_rules.iteritems() %}
         <tr>
           <td>{{ data_provider }}</td>
-          <td>{{ count }}</td>
+          <td>{{ incidents|length }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -27,12 +27,12 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Path</th>
+        <th>Field Path</th>
         <th>Broken Rules</th>
       </tr>
     </thead>
     <tbody>
-      {% for path, count in paths.iteritems() %}
+      {% for path, count in field_paths.iteritems() %}
         <tr>
           <td>{{ path }}</td>
           <td>{{ count }}</td>
@@ -44,16 +44,20 @@
     <thead>
       <tr>
         <th>Package ID</th>
+        <th>Field Path</th>
         <th>Broken Rules</th>
       </tr>
     </thead>
     <tbody>
-      {% for package_id, errors in broken_rules.iteritems() %}
-        {% for error in errors %}
-          <tr>
-            <td>{{ package_id }}</td>
-            <td><a href="#" data-toggle="tooltip" title="{{ error[0] }}">{{ error[1] }}</a></td>
-          </tr>
+      {% for portal, datasets in broken_rules.iteritems() %}
+        {% for dataset_id, errors in datasets.iteritems() %}
+          {% for error in errors %}
+            <tr>
+              <td>{{ dataset_id }}</td>
+              <td>{{ error[0] }}</td>
+              <td>{{ error[1] }}</td>
+            </tr>
+          {% endfor %}
         {% endfor %}
       {% endfor %}
     </tbody>
