@@ -38,8 +38,8 @@ class Validator(CkanCommand):
         return records['results']
 
     def render_template(self, data):
-        environment = Environment(loader=FileSystemLoader('lib/templates'))
-        template = environment.get_template('validation.html.jinja2')
+        environment = Environment(loader=FileSystemLoader('lib'))
+        template = environment.get_template('templates/validation.html.jinja2')
         return template.render(data)
 
     def write_validation_result(self, rendered_template):
@@ -54,16 +54,20 @@ class Validator(CkanCommand):
             normalize_action_dataset(dataset)
 
             identifier = dataset['id']
-            portal = dataset['extras'].get('metadata_original_portal', None)
+            portal = dataset['extras'].get('metadata_original_portal', 'null')
+            portal = portal.replace('http://', '')
+            portal = portal.replace('/', '')
 
+            data['broken_rules'][portal][identifier] = []
+            broken_rules = data['broken_rules'][portal][identifier]
+
+            data['datasets_per_portal'][portal].add(identifier)
             errors = Draft3Validator(self.schema).iter_errors(dataset)
+
             if Draft3Validator(self.schema).is_valid(dataset):
                 data['valid_datasets'] += 1
             else:
                 data['invalid_datasets'] += 1
-
-                data['broken_rules'][portal][identifier] = []
-                broken_rules = data['broken_rules'][portal][identifier]
                 errors = Draft3Validator(self.schema).iter_errors(dataset)
 
                 for error in errors:
@@ -86,12 +90,13 @@ class Validator(CkanCommand):
             endpoint = self.args[0]
             ckan = ckanclient.CkanClient(base_location=endpoint)
 
-            data = {'field_paths':      defaultdict(int),
-                    'broken_rules':     defaultdict(dict),
-                    'invalid_datasets': 0,
-                    'valid_datasets':   0}
+            data = {'field_paths':               defaultdict(int),
+                    'broken_rules':              defaultdict(dict),
+                    'datasets_per_portal':       defaultdict(set),
+                    'invalid_datasets':          0,
+                    'valid_datasets':            0}
 
-            rows = 50
+            rows = 1000
             total = self.get_dataset_count(ckan)
             steps = int(ceil(total / float(rows)))
 
@@ -101,6 +106,5 @@ class Validator(CkanCommand):
 
                 datasets = self.get_datasets(ckan, rows, i)
                 self.validate_datasets(datasets, data)
-                break
 
             self.write_validation_result(self.render_template(data))
