@@ -81,7 +81,7 @@
                   {% for error in errors %}
                     <tr>
                       {% if loop.index == 1 %}
-                        <td rowspan={{ errors|count }}><a href="https://www.govdata.de/ckan/api/dataset/{{ dataset_id }}">{{ dataset_id }}</a></td>
+                        <td rowspan={{ errors|count }}><a href="https://www.govdata.de/ckan/api/rest/dataset/{{ dataset_id }}">{{ dataset_id }}</a></td>
                       {% endif %}
                       <td>{{ error[0] }}</td>
                       <td>{{ error[1] }}</td>
