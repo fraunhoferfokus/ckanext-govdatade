@@ -4,3 +4,4 @@ nose
 jinja2
 jsonschema
 httpretty
+requests
