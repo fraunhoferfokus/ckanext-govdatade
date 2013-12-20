@@ -1,5 +1,6 @@
 language: python
-
+services:
+    - redis-server
 before_install: ./bin/travis-before-install.sh
 
 # command to run tests

@@ -1,5 +1,6 @@
 from ckanext.govdatade.validators.link_checker import LinkChecker
 
+import datetime
 import httpretty
 
 
@@ -55,3 +56,24 @@ class TestLinkChecker:
                    'resources': [{'url': url1}, {'url': url2}, {'url': url3}]}
 
         assert self.link_checker.check_dataset(dataset) == [200, 404, 200]
+
+    def test_redis(self):
+        assert self.link_checker.redis_client.ping()
+
+    def test_record_failure(self):
+        dataset_id = '1'
+        url = 'https://www.example.com'
+        status = 404
+
+        self.link_checker.record_failure(dataset_id, url, status)
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+        now = datetime.datetime.now()
+
+        date_now = now.strftime("%Y-%m-%d")
+        expected_record = {'id':    dataset_id,
+                           'urls':  [{'url':     url,
+                                      'status':  404,
+                                      'date':    date_now,
+                                      'strikes': 1}]}
+
+        assert actual_record == expected_record
