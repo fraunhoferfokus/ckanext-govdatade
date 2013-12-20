@@ -37,6 +37,7 @@ setup(
 
     [paste.paster_command]
     validator = ckanext.govdatade.commands.validator:Validator
+    linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
 
     [nose.plugins]
     pylons = pylons.test:PylonsPlugin

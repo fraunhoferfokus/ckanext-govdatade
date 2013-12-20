@@ -5,6 +5,7 @@ from ckan import model
 from ckan.lib.cli import CkanCommand
 from ckan.logic import get_action
 from ckanext.govdatade.util import normalize_action_dataset
+from ckanext.govdatade.util import iterate_remote_datasets
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 from jsonschema.validators import Draft3Validator
@@ -79,6 +80,8 @@ class Validator(CkanCommand):
                     broken_rules.append(field_path_message)
 
     def command(self):
+        for record in iterate_remote_datasets(self.args[0]):
+            print record['id']
 
         if len(self.args) == 0:
             context = {'model':       model,
