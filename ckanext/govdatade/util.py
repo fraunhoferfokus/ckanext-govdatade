@@ -1,4 +1,29 @@
+from math import ceil
+
+import ckanclient
 import json
+
+
+def iterate_remote_datasets(endpoint, max_rows=1000):
+    ckan = ckanclient.CkanClient(base_location=endpoint)
+
+    print 'Retrieve total number of datasets'
+    total = ckan.action('package_search', rows=1)['count']
+
+    steps = int(ceil(total / float(max_rows)))
+    rows = max_rows
+
+    for i in range(0, steps):
+        if i == steps - 1:
+            rows = total - (i * rows)
+
+        datasets = (i * 1000) + 1
+        print 'Retrieve datasets %s - %s' % (datasets, datasets + rows - 1)
+
+        records = ckan.action('package_search', rows=rows, start=rows * i)
+        records = records['results']
+        for record in records:
+            yield record
 
 
 def normalize_action_dataset(dataset):
