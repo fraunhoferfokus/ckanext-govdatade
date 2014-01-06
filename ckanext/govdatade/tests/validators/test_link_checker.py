@@ -2,12 +2,14 @@ from ckanext.govdatade.validators.link_checker import LinkChecker
 
 import datetime
 import httpretty
+import unittest
 
 
-class TestLinkChecker:
+class TestLinkChecker(unittest.TestCase):
 
     def setUp(self):
         self.link_checker = LinkChecker()
+        self.link_checker.redis_client.flushdb()
 
     def test_is_available_200(self):
         assert self.link_checker.is_available(200)
@@ -65,15 +67,119 @@ class TestLinkChecker:
         url = 'https://www.example.com'
         status = 404
 
-        self.link_checker.record_failure(dataset_id, url, status)
+        date = datetime.datetime(2014, 1, 1)
+        self.link_checker.record_failure(dataset_id, url, status, date)
         actual_record = eval(self.link_checker.redis_client.get(dataset_id))
-        now = datetime.datetime.now()
 
-        date_now = now.strftime("%Y-%m-%d")
+        date_string = date.strftime("%Y-%m-%d")
         expected_record = {'id':    dataset_id,
-                           'urls':  [{'url':     url,
-                                      'status':  404,
-                                      'date':    date_now,
-                                      'strikes': 1}]}
+                           'urls':  {url: {'status':  404,
+                                           'date':    date_string,
+                                           'strikes': 1}}}
 
         assert actual_record == expected_record
+
+    def test_record_failure_second_time_same_date(self):
+        dataset_id = '1'
+        url = 'https://www.example.com'
+        status = 404
+
+        date = datetime.datetime(2014, 1, 1)
+        self.link_checker.record_failure(dataset_id, url, status, date)
+
+        # Second time to test that the strikes counter has not incremented
+        self.link_checker.record_failure(dataset_id, url, status, date)
+
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+
+        date_string = date.strftime("%Y-%m-%d")
+        expected_record = {'id':    dataset_id,
+                           'urls':  {url: {'status':  404,
+                                           'date':    date_string,
+                                           'strikes': 1}}}
+
+        assert actual_record == expected_record
+
+    def test_record_failure_second_time_different_date(self):
+        dataset_id = '1'
+        url = 'https://www.example.com'
+        status = 404
+
+        date = datetime.datetime(2014, 1, 1)
+        self.link_checker.record_failure(dataset_id, url, status, date)
+
+        date = datetime.datetime(2014, 1, 2)
+        self.link_checker.record_failure(dataset_id, url, status, date)
+
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+
+        date_string = date.strftime("%Y-%m-%d")
+        expected_record = {'id':    dataset_id,
+                           'urls':  {url: {'status':  404,
+                                           'date':    date_string,
+                                           'strikes': 2}}}
+
+        self.assertEqual(actual_record, expected_record)
+
+    def test_record_success(self):
+        dataset_id = '1'
+        url = 'https://www.example.com'
+
+        self.link_checker.record_success(dataset_id, url)
+
+        entry = self.link_checker.redis_client.get(dataset_id)
+        assert entry is None
+
+    def test_record_success_after_failure(self):
+        dataset_id = '1'
+        url = 'https://www.example.com'
+        status = 404
+
+        date = datetime.datetime(2014, 1, 1)
+        self.link_checker.record_failure(dataset_id, url, status, date)
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+
+        date_string = date.strftime("%Y-%m-%d")
+        expected_record = {'id':    dataset_id,
+                           'urls':  {url: {'status':  404,
+                                           'date':    date_string,
+                                           'strikes': 1}}}
+
+        self.assertEqual(actual_record, expected_record)
+
+        self.link_checker.record_success(dataset_id, url)
+        self.assertIsNone(self.link_checker.redis_client.get(dataset_id))
+
+    def test_url_success_after_failure(self):
+        dataset_id = '1'
+
+        url1 = 'https://www.example.com/dataset/1'
+        url2 = 'https://www.example.com/dataset/2'
+
+        date = datetime.datetime(2014, 1, 1)
+        date_string = date.strftime("%Y-%m-%d")
+
+        self.link_checker.record_failure(dataset_id, url1, 404, date)
+        self.link_checker.record_failure(dataset_id, url2, 404, date)
+
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+
+        expected_record = {'id':    dataset_id,
+                           'urls':  {url1: {'status':  404,
+                                            'date':    date_string,
+                                            'strikes': 1},
+                                     url2: {'status':  404,
+                                            'date':    date_string,
+                                            'strikes': 1}}}
+
+        self.assertEqual(actual_record, expected_record)
+        self.link_checker.record_success(dataset_id, url1)
+
+        actual_record = eval(self.link_checker.redis_client.get(dataset_id))
+
+        expected_record = {'id':    dataset_id,
+                           'urls':  {url2: {'status':  404,
+                                            'date':    date_string,
+                                            'strikes': 1}}}
+
+        self.assertEqual(actual_record, expected_record)

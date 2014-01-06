@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+
 import redis
 import requests
 
@@ -27,14 +28,45 @@ class LinkChecker:
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
-    def record_failure(self, dataset_id, url, status):
-        now = datetime.datetime.now()
-        record = self.redis_client.get(dataset_id)
+    def record_failure(self, dataset_id, url, status, date=datetime.now()):
+        record = eval(unicode(self.redis_client.get(dataset_id)))
 
+        initial_url_record = {'status':  status,
+                              'date':    date.strftime("%Y-%m-%d"),
+                              'strikes': 1}
+
+        # Record is not known yet
         if record is None:
-            record = {'id':    dataset_id,
-                      'urls':  [{'url':     url,
-                                 'status':  status,
-                                 'date':    now.strftime("%Y-%m-%d"),
-                                 'strikes': 1}]}
+            record = {'id':   dataset_id, 'urls': {}}
+            record['urls'][url] = initial_url_record
             self.redis_client.set(dataset_id, record)
+
+        # Record is known, but not that particular URL (Resource)
+        elif url not in record['urls']:
+            record['urls'][url] = initial_url_record
+            self.redis_client.set(dataset_id, record)
+
+        # Record and URL are known, increment Strike counter if 1+ day(s) have
+        # passed since the last check
+        else:
+            url = record['urls'][url]
+            last_updated = datetime.strptime(url['date'], "%Y-%m-%d")
+
+            if last_updated < date:
+                url['strikes'] += 1
+                url['date'] = date.strftime("%Y-%m-%d")
+                self.redis_client.set(dataset_id, record)
+
+    def record_success(self, dataset_id, url):
+        record = self.redis_client.get(dataset_id)
+        if record is not None:
+            record = eval(record)
+
+            # Remove URL entry due to working URL
+            del record['urls'][url]
+
+            # Remove record entry altogether if there are no failures anymore
+            if not record['urls']:
+                self.redis_client.delete(dataset_id)
+            else:
+                self.redis_client.set(dataset_id, record)
