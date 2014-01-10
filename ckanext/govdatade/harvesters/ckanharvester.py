@@ -4,6 +4,7 @@
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
+from ckanext.govdatade.validators.link_checker import LinkChecker
 
 import ConfigParser
 import json
@@ -59,6 +60,7 @@ class GroupCKANHarvester(CKANHarvester):
         groups_url = config.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
+        self.link_checker = LinkChecker()
 
     def _set_config(self, config_str):
         """Enforce API version 1 for enabling group import"""
@@ -73,6 +75,7 @@ class GroupCKANHarvester(CKANHarvester):
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
+        self.link_checker.process_record(package_dict)
         try:
             self.amend_package(package_dict)
         except ValueError, e:
@@ -196,6 +199,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
+        self.link_checker = LinkChecker()
 
     def amend_package(self, package_dict):
         # manually set package type

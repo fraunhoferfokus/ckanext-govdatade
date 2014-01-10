@@ -28,10 +28,15 @@ class TestLinkChecker(unittest.TestCase):
     @httpretty.activate
     def test_check_url_404(self):
         url = 'http://example.com/dataset/1'
-        httpretty.register_uri(httpretty.HEAD, url, status=404)
+        httpretty.register_uri(httpretty.HEAD, url)
 
-        expectation = 404
-        assert self.link_checker.validate(url) == expectation
+        # timeout stub
+        def connection(address, timeout):
+            raise socket.timeout('timeout')
+
+
+    @httpretty.activate
+    def test_check_url_timeout(self)
 
     @httpretty.activate
     def test_check_url_301(self):
@@ -183,3 +188,18 @@ class TestLinkChecker(unittest.TestCase):
                                             'strikes': 1}}}
 
         self.assertEqual(actual_record, expected_record)
+
+    def test_process_record(self):
+        url1 = 'http://example.com/dataset/1'
+        url2 = 'http://example.com/dataset/2'
+
+        httpretty.register_uri(httpretty.HEAD, url1, status=200)
+        httpretty.register_uri(httpretty.HEAD, url2, status=404)
+
+        dataset = {'id': 1, 'resources': [{'url': url1}, {'url': url2}]}
+
+        self.link_checker.process_record(dataset)
+        record = eval(self.link_checker.redis_client.get(1))
+
+        self.assertIsNotIn(url1, record['urls'])
+        self.assertEqual(record['urls'][url2]['strikes'], 1)

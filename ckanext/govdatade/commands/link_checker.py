@@ -23,10 +23,12 @@ class LinkChecker(CkanCommand):
             num_urls = 0
             num_success = 0
             for i, dataset in enumerate(iterate_remote_datasets(endpoint)):
+                print 'Process %s' % i
                 for resource in dataset['resources']:
                     num_urls += 1
                     url = resource['url'].encode('utf-8')
                     response_code = checker.validate(url)
+                    print response_code
 
                     if checker.is_available(response_code):
                         num_success += 1

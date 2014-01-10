@@ -15,6 +15,24 @@ class LinkChecker:
                                               port=6379,
                                               db=database)
 
+    def process_record(self, dataset):
+        dataset_id = dataset['id']
+        delete = False
+
+        for resource in dataset['resources']:
+            url = resource['url']
+
+            try:
+                code = self.validate(resource['url'])
+                if self.is_available(code):
+                    self.record_success(dataset_id, url)
+                else:
+                    delete = self.record_failure(dataset_id, url, code)
+            except requests.Timeout:
+                delete = self.record_failure(dataset_id, url, 'Timeout')
+
+        return delete
+
     def check_dataset(self, dataset):
         results = []
         for resource in dataset['resources']:
@@ -22,13 +40,14 @@ class LinkChecker:
         return results
 
     def validate(self, url):
-        response = requests.head(url, allow_redirects=True)
+        response = requests.head(url, allow_redirects=True, timeout=3.0)
         return response.status_code
 
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
     def record_failure(self, dataset_id, url, status, date=datetime.now()):
+        delete = False
         record = eval(unicode(self.redis_client.get(dataset_id)))
 
         initial_url_record = {'status':  status,
@@ -56,6 +75,11 @@ class LinkChecker:
                 url['strikes'] += 1
                 url['date'] = date.strftime("%Y-%m-%d")
                 self.redis_client.set(dataset_id, record)
+
+                if url['strikes'] >= 3:
+                    delete = True
+
+        return delete
 
     def record_success(self, dataset_id, url):
         record = self.redis_client.get(dataset_id)
