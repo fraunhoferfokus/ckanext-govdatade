@@ -28,8 +28,12 @@ class LinkChecker:
                     self.record_success(dataset_id, url)
                 else:
                     delete = self.record_failure(dataset_id, url, code)
-            except requests.Timeout:
+            except requests.exceptions.Timeout:
                 delete = self.record_failure(dataset_id, url, 'Timeout')
+            except requests.exceptions.TooManyRedirects:
+                delete = self.record_failure(dataset_id, url, 'Redirect Loop')
+            except requests.exceptions.RequestException as e:
+                delete = self.record_failure(dataset_id, url, e)
 
         return delete
 
