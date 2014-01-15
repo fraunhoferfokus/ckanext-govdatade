@@ -98,3 +98,10 @@ class LinkChecker:
                 self.redis_client.delete(dataset_id)
             else:
                 self.redis_client.set(dataset_id, record)
+
+    def get_records(self):
+        result = []
+        for dataset_id in self.redis_client.keys('*'):
+            result.append(eval(self.redis_client.get(dataset_id)))
+
+        return result
