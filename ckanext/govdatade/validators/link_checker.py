@@ -18,6 +18,11 @@ class LinkChecker:
     def process_record(self, dataset):
         dataset_id = dataset['id']
         delete = False
+        portal = None
+
+        if 'extras' in dataset and \
+           'metadata_original_portal' in dataset['extras']:
+            portal = dataset['extras']['metadata_original_portal']
 
         for resource in dataset['resources']:
             url = resource['url']
@@ -27,11 +32,13 @@ class LinkChecker:
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
-                    delete = self.record_failure(dataset_id, url, code)
+                    delete = self.record_failure(dataset_id, url, code, portal)
             except requests.exceptions.Timeout:
-                delete = self.record_failure(dataset_id, url, 'Timeout')
+                delete = self.record_failure(dataset_id, url, 'Timeout',
+                                             portal)
             except requests.exceptions.TooManyRedirects:
-                delete = self.record_failure(dataset_id, url, 'Redirect Loop')
+                delete = self.record_failure(dataset_id, url, 'Redirect Loop',
+                                             portal)
             except requests.exceptions.RequestException as e:
                 delete = self.record_failure(dataset_id, url, e)
 
@@ -50,7 +57,9 @@ class LinkChecker:
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
-    def record_failure(self, dataset_id, url, status, date=datetime.now()):
+    def record_failure(self, dataset_id, url, status, portal,
+                       date=datetime.now()):
+
         delete = False
         record = eval(unicode(self.redis_client.get(dataset_id)))
 
@@ -62,6 +71,7 @@ class LinkChecker:
         if record is None:
             record = {'id':   dataset_id, 'urls': {}}
             record['urls'][url] = initial_url_record
+            record['metadata_original_portal'] = portal
             self.redis_client.set(dataset_id, record)
 
         # Record is known, but not that particular URL (Resource)
