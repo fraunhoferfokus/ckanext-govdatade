@@ -24,5 +24,4 @@ paster --plugin=ckan db init
 
 # Change to project directory again
 cd ~/build/fraunhoferfokus/ckanext-govdatade
-sed -i 's,/var/log/ckan/one/govdata-harvester.log,govdata-harvester.log,' ckanext/govdatade/harvesters/config.ini
 python setup.py develop
