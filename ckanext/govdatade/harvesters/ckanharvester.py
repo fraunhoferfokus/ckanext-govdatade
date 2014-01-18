@@ -64,7 +64,12 @@ class GroupCKANHarvester(CKANHarvester):
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
-        self.link_checker.process_record(package_dict)
+        delete = self.link_checker.process_record(package_dict)
+
+        # deactivated until broken links are fixed
+        if delete:
+            package_dict['state'] = 'deactivated'
+
         try:
             self.amend_package(package_dict)
         except ValueError, e:
