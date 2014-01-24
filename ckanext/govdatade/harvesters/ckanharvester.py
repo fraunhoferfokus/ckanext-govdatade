@@ -68,7 +68,9 @@ class GroupCKANHarvester(CKANHarvester):
 
         # deactivated until broken links are fixed
         if delete:
-            package_dict['state'] = 'deactivated'
+            package_dict['state'] = 'deleted'
+        else:
+            package_dict['state'] = 'active'
 
         try:
             self.amend_package(package_dict)
