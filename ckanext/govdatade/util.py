@@ -29,13 +29,20 @@ def iterate_remote_datasets(endpoint, max_rows=1000):
 def normalize_action_dataset(dataset):
     dataset['groups'] = [group['name'] for group in dataset['groups']]
     dataset['tags'] = [group['name'] for group in dataset['tags']]
-    dataset['extras'] = {e['key']: e['value'] for e in dataset['extras']}
-    dataset['extras'] = normalize_extras(dataset['extras'])
+
+    extras = {}
+    for entry in dataset['extras']:
+        extras[entry['key']] = entry['value']
+
+    dataset['extras'] = normalize_extras(extras)
 
 
 def normalize_extras(source):
     if type(source) == dict:
-        return {key: normalize_extras(value) for key, value in source.items()}
+        result = {}
+        for key, value in source.iteritems():
+            result[key] = normalize_extras(value)
+        return result
     elif type(source) == list:
         return [normalize_extras(item) for item in source]
     elif isinstance(source, basestring) and is_valid(source):
