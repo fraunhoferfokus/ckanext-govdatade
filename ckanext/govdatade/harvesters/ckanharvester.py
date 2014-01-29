@@ -15,13 +15,17 @@ import uuid
 
 
 config = ConfigParser.RawConfigParser()
-config_dir = os.path.dirname(os.path.abspath(__file__))
-config.read(config_dir + '/config.ini')
 
+config_file = os.path.dirname(__file__)
+config_file = os.path.join(config_file, '../../..', 'config.ini')
+config_file = os.path.abspath(config_file)
+
+config.read(config_file)
 log = logging.getLogger(__name__)
 
 
-def assert_author_fields(package_dict, author_alternative, author_email_alternative):
+def assert_author_fields(package_dict, author_alternative,
+                         author_email_alternative):
     """Ensures that the author field is set."""
 
     if not 'author' in package_dict or not package_dict['author']:

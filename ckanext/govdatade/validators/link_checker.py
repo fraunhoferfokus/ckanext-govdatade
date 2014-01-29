@@ -89,6 +89,7 @@ class LinkChecker:
         if record is not None:
             record['name'] = dataset_name
             record['metadata_original_portal'] = portal
+            self.redis_client.set(dataset_id, record)
 
         # Record is not known yet
         if record is None:
