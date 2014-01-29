@@ -32,15 +32,15 @@ class LinkChecker:
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
-                    delete = self.record_failure(dataset_id, url, code, portal)
+                    delete = self.record_failure(dataset, url, code, portal)
             except requests.exceptions.Timeout:
-                delete = self.record_failure(dataset_id, url, 'Timeout',
+                delete = self.record_failure(dataset, url, 'Timeout',
                                              portal)
             except requests.exceptions.TooManyRedirects:
-                delete = self.record_failure(dataset_id, url, 'Redirect Loop',
+                delete = self.record_failure(dataset, url, 'Redirect Loop',
                                              portal)
             except requests.exceptions.RequestException as e:
-                delete = self.record_failure(dataset_id, url, e)
+                delete = self.record_failure(dataset, url, e)
 
         return delete
 
@@ -57,8 +57,11 @@ class LinkChecker:
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
-    def record_failure(self, dataset_id, url, status, portal,
+    def record_failure(self, dataset, url, status, portal,
                        date=datetime.now()):
+
+        dataset_id = dataset['id']
+        dataset_name = dataset['name']
 
         delete = False
         record = eval(unicode(self.redis_client.get(dataset_id)))
@@ -67,9 +70,13 @@ class LinkChecker:
                               'date':    date.strftime("%Y-%m-%d"),
                               'strikes': 1}
 
+        if record is not None:
+            record['name'] = record_name
+            record['metadata_original_portal'] = portal
+
         # Record is not known yet
         if record is None:
-            record = {'id':   dataset_id, 'urls': {}}
+            record = {'id': dataset_id, 'name': dataset_name, 'urls': {}}
             record['urls'][url] = initial_url_record
             record['metadata_original_portal'] = portal
             self.redis_client.set(dataset_id, record)
