@@ -29,7 +29,11 @@ def iterate_remote_datasets(endpoint, max_rows=1000):
 def normalize_action_dataset(dataset):
     dataset['groups'] = [group['name'] for group in dataset['groups']]
     dataset['tags'] = [group['name'] for group in dataset['tags']]
-    dataset['extras'] = {e['key']: e['value'] for e in dataset['extras']}
+
+    dataset['extras'] = {}
+    for entry in dataset['extras']:
+        dataset[entry['key']] = entry['value']
+
     dataset['extras'] = normalize_extras(dataset['extras'])
 
 
