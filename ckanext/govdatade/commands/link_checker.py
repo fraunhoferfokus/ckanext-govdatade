@@ -4,6 +4,10 @@
 from ckan.lib.cli import CkanCommand
 from ckanext.govdatade.util import iterate_remote_datasets
 from ckanext.govdatade.validators import link_checker
+from collections import defaultdict
+from jinja2 import Environment, FileSystemLoader
+
+import requests
 
 
 class LinkChecker(CkanCommand):
@@ -35,10 +39,36 @@ class LinkChecker(CkanCommand):
 
     def generate_report(self):
         checker = link_checker.LinkChecker()
+        url = 'https://www.govdata.de/ckan/api/action/package_search?q='
+        num_metadata = requests.get(url).json()['result']['count']
+
+        data = {'portals': defaultdict(int), 'entries': []}
+
         for record in checker.get_records():
-            for url, info in record['urls'].items():
-                print url
-                print info
+            for url, entry in record['urls'].iteritems():
+                if type(entry['status']) == int:
+                    entry['status'] = 'HTTP %s' % entry['status']
+
+            if 'metadata_original_portal' in record:  # legacy
+                portal = record['metadata_original_portal']
+                data['portals'][portal] += 1
+                data['entries'].append(record)
+
+        data['count'] = sum(data['portals'].values())
+        data['working'] = num_metadata - data['count']
+
+        self.write_report(self.render_template(data))
+
+    def render_template(self, data):
+        filename = 'templates/linkchecker-report.html.jinja2'
+        environment = Environment(loader=FileSystemLoader('lib'))
+        template = environment.get_template(filename)
+        return template.render(data)
+
+    def write_report(self, rendered_template):
+        fd = open('report/linkchecker.html', 'w')
+        fd.write(rendered_template.encode('UTF-8'))
+        fd.close()
 
     def command(self):
 
