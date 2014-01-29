@@ -62,14 +62,19 @@ class LinkChecker(CkanCommand):
         self.write_report(self.render_template(data))
 
     def render_template(self, data):
-        filename = 'templates/linkchecker-report.html.jinja2'
-        environment = Environment(loader=FileSystemLoader('lib'))
-        template = environment.get_template(filename)
+        template_file = 'templates/linkchecker-report.html.jinja2'
+
+        template_path = os.path.dirname(__file__)
+        template_path = os.path.join(template_path, '../../..', 'lib')
+        template_path = os.path.abspath(template_path)
+
+        environment = Environment(loader=FileSystemLoader(template_path))
+        template = environment.get_template(template_file)
         return template.render(data)
 
     def write_report(self, rendered_template):
         target_dir = CONFIG.get('validators', 'report_dir')
-        target_dir = os.path.dirname(target_dir)
+        target_dir = os.path.abspath(target_dir)
         output = os.path.join(target_dir, 'linkchecker.html')
 
         fd = open(output, 'w')
