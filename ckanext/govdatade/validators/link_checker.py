@@ -2,11 +2,13 @@ from datetime import datetime
 
 import redis
 import requests
+import socket
 
 
 class LinkChecker:
 
     HEADERS = {'User-Agent': 'curl/7.29.0'}
+    TIMEOUT = 10.0
 
     def __init__(self, db='production'):
         redis_db_dict = {'production': 0, 'test': 1}
@@ -32,16 +34,23 @@ class LinkChecker:
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
-                    delete = self.record_failure(dataset, url, code, portal)
+                    delete = delete or self.record_failure(dataset, url,
+                                                           code, portal)
             except requests.exceptions.Timeout:
-                delete = self.record_failure(dataset, url, 'Timeout',
-                                             portal)
+                delete = delete or self.record_failure(dataset_id, url,
+                                                       'Timeout', portal)
             except requests.exceptions.TooManyRedirects:
-                delete = self.record_failure(dataset, url, 'Redirect Loop',
-                                             portal)
+                delete = delete or self.record_failure(dataset_id, url,
+                                                       'Redirect Loop', portal)
             except requests.exceptions.RequestException as e:
-                delete = self.record_failure(dataset, url, e)
-
+                if e is None:
+                    delete = delete or self.record_failure(dataset_id, url,
+                                                           'Unknown')
+                else:
+                    delete = delete or self.record_failure(dataset_id, url, e)
+            except socket.timeout:
+                delete = delete or self.record_failure(dataset_id, url,
+                                                       'Timeout', portal)
         return delete
 
     def check_dataset(self, dataset):
@@ -51,14 +60,21 @@ class LinkChecker:
         return results
 
     def validate(self, url):
-        response = requests.head(url, allow_redirects=True, timeout=3.0)
-        return response.status_code
+        response = requests.head(url, allow_redirects=True,
+                                 timeout=self.TIMEOUT)
+
+        if self.is_available(response.status_code):
+            return response.status_code
+        else:
+            response = requests.get(url, allow_redirects=True,
+                                    timeout=self.TIMEOUT)
+            return response.status_code
 
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
     def record_failure(self, dataset, url, status, portal,
-                       date=datetime.now()):
+                       date=datetime.now().date()):
 
         dataset_id = dataset['id']
         dataset_name = dataset['name']
@@ -71,7 +87,7 @@ class LinkChecker:
                               'strikes': 1}
 
         if record is not None:
-            record['name'] = record_name
+            record['name'] = dataset_name
             record['metadata_original_portal'] = portal
 
         # Record is not known yet
@@ -89,16 +105,16 @@ class LinkChecker:
         # Record and URL are known, increment Strike counter if 1+ day(s) have
         # passed since the last check
         else:
-            url = record['urls'][url]
-            last_updated = datetime.strptime(url['date'], "%Y-%m-%d")
+            url_entry = record['urls'][url]
+            last_updated = datetime.strptime(url_entry['date'], "%Y-%m-%d")
+            last_updated = last_updated.date()
 
             if last_updated < date:
-                url['strikes'] += 1
-                url['date'] = date.strftime("%Y-%m-%d")
+                url_entry['strikes'] += 1
+                url_entry['date'] = date.strftime("%Y-%m-%d")
                 self.redis_client.set(dataset_id, record)
 
-                if url['strikes'] >= 3:
-                    delete = True
+        delete = record['urls'][url]['strikes'] >= 3
 
         return delete
 
@@ -108,9 +124,10 @@ class LinkChecker:
             record = eval(record)
 
             # Remove URL entry due to working URL
-            del record['urls'][url]
+            record['urls'].pop(url, None)
 
-            # Remove record entry altogether if there are no failures anymore
+            # Remove record entry altogether if there are no failures
+            # anymore
             if not record['urls']:
                 self.redis_client.delete(dataset_id)
             else:
