@@ -5,22 +5,14 @@ from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
 from ckanext.govdatade.validators.link_checker import LinkChecker
+from ckanext.govdatade import CONFIG
 
-import ConfigParser
 import json
 import logging
-import os
 import urllib2
 import uuid
 
 
-config = ConfigParser.RawConfigParser()
-
-config_file = os.path.dirname(__file__)
-config_file = os.path.join(config_file, '../../..', 'config.ini')
-config_file = os.path.abspath(config_file)
-
-config.read(config_file)
 log = logging.getLogger(__name__)
 
 
@@ -49,8 +41,8 @@ class GroupCKANHarvester(CKANHarvester):
     """Enforce API version 1 for enabling group import"""
 
     def __init__(self):
-        schema_url = config.get('URLs', 'schema')
-        groups_url = config.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
@@ -194,8 +186,8 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-        schema_url = config.get('URLs', 'schema')
-        groups_url = config.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())

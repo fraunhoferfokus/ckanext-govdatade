@@ -24,4 +24,5 @@ paster --plugin=ckan db init
 
 # Change to project directory again
 cd ~/build/fraunhoferfokus/ckanext-govdatade
+-sed -i 's,/var/lib/ckan/one/static/reports/,reports,' config.ini
 python setup.py develop

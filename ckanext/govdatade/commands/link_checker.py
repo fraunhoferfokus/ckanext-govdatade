@@ -2,11 +2,13 @@
 # -*- coding: utf8 -*-
 
 from ckan.lib.cli import CkanCommand
+from ckanext.govdatade import CONFIG
 from ckanext.govdatade.util import iterate_remote_datasets
 from ckanext.govdatade.validators import link_checker
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 
+import os
 import requests
 
 
@@ -66,7 +68,11 @@ class LinkChecker(CkanCommand):
         return template.render(data)
 
     def write_report(self, rendered_template):
-        fd = open('report/linkchecker.html', 'w')
+        target_dir = CONFIG.get('validators', 'report_dir')
+        target_dir = os.path.dirname(target_dir)
+        output = os.path.join(target_dir, 'linkchecker.html')
+
+        fd = open(output, 'w')
         fd.write(rendered_template.encode('UTF-8'))
         fd.close()
 
