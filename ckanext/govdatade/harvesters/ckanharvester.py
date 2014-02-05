@@ -4,8 +4,14 @@
 from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
+from ckanext.govdatade.util import iterate_local_datasets
 from ckanext.govdatade.validators.link_checker import LinkChecker
 from ckanext.govdatade import CONFIG
+
+from ckan import model
+from ckan.logic import get_action
+from ckan.logic.schema import default_package_schema
+from ckan.model import Session
 
 import json
 import logging
@@ -35,7 +41,10 @@ def resolve_json_incosistency(dataset):
 
 
 class GroupCKANHarvester(CKANHarvester):
-    """An extended CKAN harvester that also imports remote groups, for that api version 1 is enforced"""
+    """
+    An extended CKAN harvester that also imports remote groups, for that api
+    version 1 is enforced
+    """
 
     api_version = 1
     """Enforce API version 1 for enabling group import"""
@@ -78,8 +87,73 @@ class GroupCKANHarvester(CKANHarvester):
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
 
+class GovDataHarvester(GroupCKANHarvester):
+    """The base harvester for GovData.de perfoming remote synchonization."""
+
+    def build_context(self):
+        return {'model':       model,
+                'session':     Session,
+                'user':        u'harvest',
+                'schema':      default_package_schema,
+                'validate':    False}
+
+    def portal_relevant(self, portal):
+        def condition_check(dataset):
+            for extra in dataset['extras']:
+                if extra['key'] == 'metadata_original_portal':
+                    value = extra['value']
+                    value = value.lstrip('"').rstrip('"')
+                    return value == portal
+
+            return False
+
+        return condition_check
+
+    def delete_deprecated_datasets(self, context, remote_dataset_names):
+        package_update = get_action('package_update')
+
+        local_datasets = iterate_local_datasets(context)
+        filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
+        local_dataset_names = map(lambda dataset: dataset['name'], filtered)
+
+        deprecated = set(local_dataset_names) - set(remote_dataset_names)
+        log.info('Found %s deprecated datasets.' % len(deprecated))
+
+        for local_dataset in filtered:
+            if local_dataset['name'] in deprecated:
+                print 'Deleted yet? %s' % local_dataset['state'] == 'deleted'
+                local_dataset['state'] = 'deleted'
+                package_update(context, local_dataset)
+
+    def gather_stage(self, harvest_job):
+        """Retrieve local datasets for synchronization."""
+
+        self._set_config(harvest_job.source.config)
+        content = self._get_content(harvest_job.source.url)
+
+        base_url = harvest_job.source.url.rstrip('/')
+        base_rest_url = base_url + self._get_rest_api_offset()
+        url = base_rest_url + '/package'
+
+        try:
+            content = self._get_content(url)
+        except Exception, e:
+            error = 'Unable to get content for URL: %s: %s' % (url, str(e))
+            self._save_gather_error(error, harvest_job)
+            return None
+
+        context = self.build_context()
+        remote_datasets = json.loads(content)
+        remote_dataset_names = map(lambda d: d['name'], remote_datasets)
+
+        self.delete_deprecated_datasets(context, remote_dataset_names)
+        super(GovDataHarvester, self).gather_stage(harvest_job)
+
+
 class RostockCKANHarvester(GroupCKANHarvester):
     """A CKAN Harvester for Rostock solving data compatibility problems."""
+
+    PORTAL = 'http://www.opendata-hro.de'
 
     def info(self):
         return {'name':        'rostock',
@@ -253,7 +327,7 @@ class RLPCKANHarvester(GroupCKANHarvester):
         super(RLPCKANHarvester, self).import_stage(harvest_object)
 
 
-class JSONDumpBaseCKANHarvester(GroupCKANHarvester):
+class JSONDumpBaseCKANHarvester(GovDataHarvester):
 
     def info(self):
         return {'name':        'base',
@@ -277,6 +351,10 @@ class JSONDumpBaseCKANHarvester(GroupCKANHarvester):
             obj.content = json.dumps(package)
             obj.save()
             object_ids.append(obj.id)
+
+        context = self.build_context()
+        remote_dataset_names = map(lambda d: d['name'], packages)
+        self.delete_deprecated_datasets(context, remote_dataset_names)
 
         if object_ids:
             return object_ids
@@ -407,10 +485,23 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
 class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
     """A CKAN Harvester for Moers solving data compatibility problems."""
 
+    PORTAL = 'http://www.offenedaten.moers.de/'
+
     def info(self):
         return {'name':        'moers',
                 'title':       'Moers Harvester',
                 'description': 'A CKAN Harvester for Moers solving data compatibility problems.'}
+
+    def amend_dataset_name(self, dataset):
+        dataset['name'] = dataset['name'].replace(u'ä', 'ae')
+        dataset['name'] = dataset['name'].replace(u'ü', 'ue')
+        dataset['name'] = dataset['name'].replace(u'ö', 'oe')
+
+        dataset['name'] = dataset['name'].replace('(', '')
+        dataset['name'] = dataset['name'].replace(')', '')
+        dataset['name'] = dataset['name'].replace('.', '')
+        dataset['name'] = dataset['name'].replace('/', '')
+        dataset['name'] = dataset['name'].replace('http://www.moers.de', '')
 
     def amend_package(self, package):
 
@@ -420,6 +511,7 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
         if not publishers:
             raise ValueError('There is no author email for package %s' % package_dict['id'])
 
+        self.amend_dataset_name(package)
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['name'] = package['name'].lower()
 

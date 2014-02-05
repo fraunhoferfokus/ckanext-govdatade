@@ -1,3 +1,4 @@
+from ckan.logic import get_action
 from math import ceil
 
 import ckanclient
@@ -24,6 +25,15 @@ def iterate_remote_datasets(endpoint, max_rows=1000):
         records = records['results']
         for record in records:
             yield record
+
+
+def iterate_local_datasets(context, rows=1000):
+    package_list = get_action('package_list')
+    package_show = get_action('package_show')
+
+    for dataset_name in package_list(context, None):
+        dataset = package_show(context, {'id': dataset_name})
+        yield dataset
 
 
 def normalize_action_dataset(dataset):
