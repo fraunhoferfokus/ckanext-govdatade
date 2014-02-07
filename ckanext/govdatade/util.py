@@ -1,8 +1,11 @@
+from ckanext.govdatade import CONFIG
 from ckan.logic import get_action
 from math import ceil
 
 import ckanclient
+import distutils.dir_util
 import json
+import os
 
 
 def iterate_remote_datasets(endpoint, max_rows=1000):
@@ -59,6 +62,18 @@ def normalize_extras(source):
         return normalize_extras(json.loads(source))
     else:
         return source
+
+
+def copy_report_vendor_files():
+    target_dir = CONFIG.get('validators', 'report_dir')
+    target_dir = os.path.join(target_dir, 'assets')
+    target_dir = os.path.abspath(target_dir)
+
+    vendor_dir = os.path.dirname(__file__)
+    vendor_dir = os.path.join(vendor_dir, '../../', 'lib/vendor')
+    vendor_dir = os.path.abspath(vendor_dir)
+
+    distutils.dir_util.copy_tree(vendor_dir, target_dir, update=1)
 
 
 def is_valid(source):

@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from ckan import model
+from ckan.model import Session
 from ckan.lib.cli import CkanCommand
-from ckan.logic import get_action
+from ckan.logic.schema import default_package_schema
+
+from ckanext.govdatade import CONFIG
+from ckanext.govdatade.util import copy_report_vendor_files
 from ckanext.govdatade.util import normalize_action_dataset
-from ckanext.govdatade.util import iterate_remote_datasets
+from ckanext.govdatade.util import iterate_local_datasets
+
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 from jsonschema.validators import Draft3Validator
@@ -13,6 +18,7 @@ from math import ceil
 
 import ckanclient
 import json
+import os
 import urllib2
 
 
@@ -39,65 +45,80 @@ class Validator(CkanCommand):
         return records['results']
 
     def render_template(self, data):
+        filename = 'templates/schema-validation.html.jinja2'
         environment = Environment(loader=FileSystemLoader('lib'))
-        template = environment.get_template('templates/validation.html.jinja2')
+        template = environment.get_template(filename)
         return template.render(data)
 
     def write_validation_result(self, rendered_template):
-        fd = open('output/validation.html', 'w')
-        fd.write(rendered_template)
+        target_dir = CONFIG.get('validators', 'report_dir')
+        target_dir = os.path.abspath(target_dir)
+        output = os.path.join(target_dir, 'schema-validation.html')
+
+        fd = open(output, 'w')
+        fd.write(rendered_template.encode('UTF-8'))
         fd.close()
 
-    def validate_datasets(self, datasets, data):
+    def validate_datasets(self, dataset, data):
+        normalize_action_dataset(dataset)
 
-        print 'Validate datasets'
-        for i, dataset in enumerate(datasets):
-            normalize_action_dataset(dataset)
+        identifier = dataset['id']
+        portal = dataset['extras'].get('metadata_original_portal', 'null')
+        portal = portal.replace('http://', '')
+        portal = portal.replace('/', '')
 
-            identifier = dataset['id']
-            portal = dataset['extras'].get('metadata_original_portal', 'null')
-            portal = portal.replace('http://', '')
-            portal = portal.replace('/', '')
+        data['broken_rules'][portal][identifier] = []
+        broken_rules = data['broken_rules'][portal][identifier]
 
-            data['broken_rules'][portal][identifier] = []
-            broken_rules = data['broken_rules'][portal][identifier]
+        data['datasets_per_portal'][portal].add(identifier)
+        errors = Draft3Validator(self.schema).iter_errors(dataset)
 
-            data['datasets_per_portal'][portal].add(identifier)
+        if Draft3Validator(self.schema).is_valid(dataset):
+            data['valid_datasets'] += 1
+        else:
+            data['invalid_datasets'] += 1
             errors = Draft3Validator(self.schema).iter_errors(dataset)
 
-            if Draft3Validator(self.schema).is_valid(dataset):
-                data['valid_datasets'] += 1
-            else:
-                data['invalid_datasets'] += 1
-                errors = Draft3Validator(self.schema).iter_errors(dataset)
+            for error in errors:
+                path = [e for e in error.path if isinstance(e, basestring)]
+                path = str(' -> '.join(map((lambda e: str(e)), path)))
 
-                for error in errors:
-                    path = [e for e in error.path if isinstance(e, basestring)]
-                    path = str(' -> '.join(map((lambda e: str(e)), path)))
+                data['field_paths'][path] += 1
+                field_path_message = [path, error.message]
+                broken_rules.append(field_path_message)
 
-                    data['field_paths'][path] += 1
-                    field_path_message = [path, error.message]
-                    broken_rules.append(field_path_message)
+    def create_context(self):
+        return {'model':       model,
+                'session':     Session,
+                'user':        u'harvest',
+                'schema':      default_package_schema,
+                'validate':    False}
 
     def command(self):
-        for record in iterate_remote_datasets(self.args[0]):
-            print record['id']
+        super(Validator, self)._load_config()
+        context = self.create_context()
+
+        data = {'field_paths':         defaultdict(int),
+                'broken_rules':        defaultdict(dict),
+                'datasets_per_portal': defaultdict(set),
+                'invalid_datasets':    0,
+                'valid_datasets':      0}
 
         if len(self.args) == 0:
+
             context = {'model':       model,
                        'session':     model.Session,
                        'ignore_auth': True}
 
-            get_action('package_list')(context, {})
-        else:
-            endpoint = self.args[0]
-            ckan = ckanclient.CkanClient(base_location=endpoint)
+            for dataset in iterate_local_datasets(context):
+                self.validate_datasets(dataset, data)
 
-            data = {'field_paths':               defaultdict(int),
-                    'broken_rules':              defaultdict(dict),
-                    'datasets_per_portal':       defaultdict(set),
-                    'invalid_datasets':          0,
-                    'valid_datasets':            0}
+            copy_report_vendor_files()
+            self.write_validation_result(self.render_template(data))
+
+        elif len(self.args) == 2 and self.args[0] == 'remote':
+            endpoint = self.args[1]
+            ckan = ckanclient.CkanClient(base_location=endpoint)
 
             rows = 1000
             total = self.get_dataset_count(ckan)
