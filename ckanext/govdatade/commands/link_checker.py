@@ -4,6 +4,7 @@
 from ckan.lib.cli import CkanCommand
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.util import iterate_remote_datasets
+from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.validators import link_checker
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
@@ -40,35 +41,18 @@ class LinkChecker(CkanCommand):
         print num_success
 
     def generate_report(self):
-        checker = link_checker.LinkChecker()
-        url = 'https://www.govdata.de/ckan/api/action/package_search?q='
-        num_metadata = requests.get(url).json()['result']['count']
-
-        data = {'portals': defaultdict(int), 'entries': []}
-
-        for record in checker.get_records():
-            for url, entry in record['urls'].iteritems():
-                if type(entry['status']) == int:
-                    entry['status'] = 'HTTP %s' % entry['status']
-
-            if 'metadata_original_portal' in record:  # legacy
-                portal = record['metadata_original_portal']
-                data['portals'][portal] += 1
-                data['entries'].append(record)
-
-        data['count'] = sum(data['portals'].values())
-        data['working'] = num_metadata - data['count']
-
+        data = {}
+        generate_link_checker_data(data)
         self.write_report(self.render_template(data))
 
     def render_template(self, data):
-        template_file = 'templates/linkchecker-report.html.jinja2'
+        template_file = 'linkchecker-report.html.jinja2'
 
-        template_path = os.path.dirname(__file__)
-        template_path = os.path.join(template_path, '../../..', 'lib')
-        template_path = os.path.abspath(template_path)
+        template_dir = os.path.dirname(__file__)
+        template_dir = os.path.join(template_dir, '../../..', 'lib/templates')
+        template_dir = os.path.abspath(template_dir)
 
-        environment = Environment(loader=FileSystemLoader(template_path))
+        environment = Environment(loader=FileSystemLoader(template_dir))
         template = environment.get_template(template_file)
         return template.render(data)
 

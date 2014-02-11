@@ -1,11 +1,14 @@
-from ckanext.govdatade import CONFIG
 from ckan.logic import get_action
+from ckanext.govdatade import CONFIG
+from ckanext.govdatade.validators import link_checker
+from collections import defaultdict
 from math import ceil
 
 import ckanclient
 import distutils.dir_util
 import json
 import os
+import requests
 
 
 def iterate_remote_datasets(endpoint, max_rows=1000):
@@ -76,6 +79,18 @@ def copy_report_vendor_files():
     distutils.dir_util.copy_tree(vendor_dir, target_dir, update=1)
 
 
+def copy_report_asset_files():
+    target_dir = CONFIG.get('validators', 'report_dir')
+    target_dir = os.path.join(target_dir, 'assets')
+    target_dir = os.path.abspath(target_dir)
+
+    vendor_dir = os.path.dirname(__file__)
+    vendor_dir = os.path.join(vendor_dir, '../../', 'lib/assets')
+    vendor_dir = os.path.abspath(vendor_dir)
+
+    distutils.dir_util.copy_tree(vendor_dir, target_dir, update=1)
+
+
 def is_valid(source):
     try:
         value = json.loads(source)
@@ -83,3 +98,27 @@ def is_valid(source):
                 or isinstance(value, basestring))
     except ValueError:
         return False
+
+
+def generate_link_checker_data(data):
+    checker = link_checker.LinkChecker()
+    url = 'https://www.govdata.de/ckan/api/action/package_search?q='
+    num_metadata = requests.get(url).json()['result']['count']
+
+    data['linkchecker'] = {}
+    data['portals'] = defaultdict(int)
+    data['entries'] = []
+
+    for record in checker.get_records():
+        for url, entry in record['urls'].iteritems():
+            if type(entry['status']) == int:
+                entry['status'] = 'HTTP %s' % entry['status']
+
+        if 'metadata_original_portal' in record:  # legacy
+            portal = record['metadata_original_portal']
+            data['portals'][portal] += 1
+            data['entries'].append(record)
+
+    lc_stats = data['linkchecker']
+    lc_stats['count'] = sum(data['portals'].values())
+    lc_stats['working'] = num_metadata - lc_stats['count']

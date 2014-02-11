@@ -1,29 +1,5 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>Schema Validation</title>
-  <link rel="stylesheet" href="assets/vendor/css/bootstrap.min.css" media="all">
-  <script type="text/javascript">{% include 'vendor/js/jquery-2.0.3.min.js' %}</script>
-  <script type="text/javascript" src="assets/vendor/js/bootstrap.min.js"></script>
-  <style type="text/css">
-    {% include 'vendor/css/bootstrap.min.css' %}
-    h1, h2, h3 {
-      text-align: center;
-      margin-bottom: 1.25em;
-    }
-
-    #broken-rules-table tbody tr td[rowspan] {
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    .nav {
-      margin-bottom: 1.25em;
-    }
-  </style>
-</head>
-<body>
+{% extends "layout.html.jinja2" %}
+{% block body %}
   <h1>Schema Validation</h1>
   <h2>Valid {{ valid_datasets }} of {{ valid_datasets + invalid_datasets }}</h2>
   <div class="row">
@@ -101,5 +77,4 @@
       </div>
     </div>
   </div>
-</body>
-</html>
+{% endblock %}

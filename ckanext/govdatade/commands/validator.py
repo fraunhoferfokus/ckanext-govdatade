@@ -8,7 +8,9 @@ from ckan.logic.schema import default_package_schema
 
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.util import copy_report_vendor_files
+from ckanext.govdatade.util import copy_report_asset_files
 from ckanext.govdatade.util import normalize_action_dataset
+from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.util import iterate_local_datasets
 
 from collections import defaultdict
@@ -44,18 +46,24 @@ class Validator(CkanCommand):
         records = ckan.action('package_search', rows=rows, start=rows * i)
         return records['results']
 
-    def render_template(self, data):
-        filename = 'templates/schema-validation.html.jinja2'
-        environment = Environment(loader=FileSystemLoader('lib'))
-        template = environment.get_template(filename)
+    def render_template(self, template_file, data):
+
+        template_dir = os.path.dirname(__file__)
+        template_dir = os.path.join(template_dir, '../../..', 'lib/templates')
+        template_dir = os.path.abspath(template_dir)
+
+        environment = Environment(loader=FileSystemLoader(template_dir))
+        template = environment.get_template(template_file)
         return template.render(data)
 
-    def write_validation_result(self, rendered_template):
-        target_dir = CONFIG.get('validators', 'report_dir')
-        target_dir = os.path.abspath(target_dir)
-        output = os.path.join(target_dir, 'schema-validation.html')
+    def write_validation_result(self, rendered_template, template_file):
+        target_file = template_file.rstrip(".jinja2")
 
-        fd = open(output, 'w')
+        target_dir = CONFIG.get('validators', 'report_dir')
+        target_dir = os.path.join(target_dir, target_file)
+        target_dir = os.path.abspath(target_dir)
+
+        fd = open(target_dir, 'w')
         fd.write(rendered_template.encode('UTF-8'))
         fd.close()
 
@@ -110,11 +118,23 @@ class Validator(CkanCommand):
                        'session':     model.Session,
                        'ignore_auth': True}
 
-            for dataset in iterate_local_datasets(context):
+            for i, dataset in enumerate(iterate_local_datasets(context)):
+                print 'Processing dataset %s' % i
                 self.validate_datasets(dataset, data)
+                break
 
+            copy_report_asset_files()
             copy_report_vendor_files()
-            self.write_validation_result(self.render_template(data))
+
+            generate_link_checker_data(data)
+
+            template_file = 'schema-validation.html.jinja2'
+            rendered_template = self.render_template(template_file, data)
+            self.write_validation_result(rendered_template, template_file)
+
+            template_file = 'index.html.jinja2'
+            rendered_template = self.render_template(template_file, data)
+            self.write_validation_result(rendered_template, template_file)
 
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]

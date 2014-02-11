@@ -1,101 +1,5 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>Verweisprüfer</title>
-  <style type="text/css">
-    {% include 'vendor/css/bootstrap.min.css' %}
-    h1 {
-      text-align: center;
-      margin-bottom: 2em;
-    }
-
-    h1, h2, h3 {
-      margin-bottom: 0.75em;
-    }
-
-    #broken-rules-table tbody tr td[rowspan] {
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    .nav {
-      margin-bottom: 1.25em;
-    }
-
-    #pie-chart {
-      margin-top: 2em;
-      margin-left: 5em;
-    }
-
-    .legend {
-      margin-top: 1em;
-    }
-
-    table {
-      margin-top: 2em;
-    }
-
-    .overview.table > tbody tr td:first-child > .row div {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .analysis.table {
-      table-layout: fixed;
-    }
-
-    .analysis.table > tbody tr td[rowspan] {
-      vertical-align: middle;
-    }
-
-    .analysis.table > tbody tr td {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .analysis.table > thead tr th:first-child,
-    .analysis.table > tbody tr td:first-child {
-      width: 20%
-    }
-
-    .analysis.table > thead tr th:nth-child(2),
-    .analysis.table > tbody tr td:nth-child(2) {
-      width: 50%;
-    }
-
-    .analysis.table > thead tr th:nth-child(3),
-    .analysis.table > tbody tr td:nth-child(3) {
-      width: 10%;
-    }
-
-    .bar {
-      background-color: #428bca;
-      height: 20px;
-    }
-
-    .arc path {
-       stroke: #fff;
-     }
-
-     .deleted {
-       color: #ff0000;
-       font-weight: bold;
-     }
-
-     .deleted > a {
-       color: inherit;
-     }
-
-     .deleted > a:hover {
-       text-decoration: inherit;
-       cursor: pointer;
-     }
-  </style>
-</head>
-<body>
+{% extends "layout.html.jinja2" %}
+{% block body %}
   <h1>Verweisprüfer</h1>
   <div class="row">
     <div class="col-md-5 col-md-offset-2">
@@ -119,7 +23,7 @@
                   <div class="row">
                     <div class="col-md-9">{{ portal }}</div>
                     <div class="col-md-3">
-                      <div class="bar" style="width:{{ broken_records / count * 200 }}px"></div>
+                      <div class="bar" style="width:{{ broken_records / linkchecker.count * 5}} em"></div>
                     </div>
                   </div>
                 </td>
@@ -173,61 +77,4 @@
       </table>
     </div>
   </div>
-  <script type="text/javascript">{% include 'vendor/js/jquery-2.0.3.min.js' %}</script>
-  <script type="text/javascript">{% include 'vendor/js/d3.v3.min.js' %}</script>
-  <script type="text/javascript">{% include 'vendor/js/bootstrap.min.js' %}</script>
-  <script type="text/javascript">
-    var width = 250,
-        height = 250,
-        radius = Math.min(width, height) / 2;
-
-    var color = d3.scale.category10()
-
-    var arc = d3.svg.arc()
-        .outerRadius(radius - 10)
-        .innerRadius(0);
-
-    var pie = d3.layout.pie()
-        .sort(null)
-        .value(function(d) { return d.count; });
-
-      var svg = d3.select("#pie-chart").append("svg")
-          .attr("width", width)
-          .attr("height", height)
-          .append("g")
-          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-          var data = [{type: "Metadaten unversehrt", count: {{ working }}},
-                      {type: "Metadaten beschädigt", count: {{ count}}}]
-
-      var g = svg.selectAll(".arc")
-          .data(pie(data))
-          .enter().append("g")
-          .attr("class", "arc");
-
-      g.append("path")
-       .attr("d", arc)
-       .style("fill", function(d) { return color(d.data.type); });
-
-      var legend = d3.select("#pie-chart").append("svg")
-        .attr("class", "legend")
-        .attr("width", radius + 100)
-        .attr("height", 50)
-        .selectAll("g")
-        .data(data)
-        .enter().append("g")
-        .attr("transform", function(d, i) { return "translate(40," + i * 20 + ")"; });
-
-      legend.append("rect")
-        .attr("width", 18)
-        .attr("height", 18)
-        .style("fill", function(d) { return color(d.type); });
-
-      legend.append("text")
-        .attr("x", 24)
-        .attr("y", 9)
-        .attr("dy", ".35em")
-        .text(function(d) { return d.type; });
-  </script>
-</body>
-</html>
+{% endblock %}
