@@ -7,10 +7,7 @@ from ckan.lib.cli import CkanCommand
 from ckan.logic.schema import default_package_schema
 
 from ckanext.govdatade import CONFIG
-from ckanext.govdatade.util import copy_report_vendor_files
-from ckanext.govdatade.util import copy_report_asset_files
 from ckanext.govdatade.util import normalize_action_dataset
-from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.util import iterate_local_datasets
 from ckanext.govdatade.validators import schema_checker
 
@@ -20,9 +17,7 @@ from jsonschema.validators import Draft3Validator
 from math import ceil
 
 import ckanclient
-import json
 import os
-import urllib2
 
 
 class SchemaChecker(CkanCommand):
@@ -120,23 +115,14 @@ class SchemaChecker(CkanCommand):
 
             validator = schema_checker.SchemaChecker()
 
+            num_datasets = 0
             for i, dataset in enumerate(iterate_local_datasets(context)):
                 print 'Processing dataset %s' % i
                 normalize_action_dataset(dataset)
-                validator.process_record(dataset)
+                num_datasets += 1
 
-#            copy_report_asset_files()
-#            copy_report_vendor_files()
-#
-#            generate_link_checker_data(data)
-#
-#            template_file = 'schema-validation.html.jinja2'
-#            rendered_template = self.render_template(template_file, data)
-#            self.write_validation_result(rendered_template, template_file)
-#
-#            template_file = 'index.html.jinja2'
-#            rendered_template = self.render_template(template_file, data)
-#            self.write_validation_result(rendered_template, template_file)
+            general = {'num_datasets': num_datasets}
+            validator.redis_client.set(general)
 
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]

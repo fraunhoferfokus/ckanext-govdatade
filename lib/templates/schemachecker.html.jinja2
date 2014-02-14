@@ -14,10 +14,10 @@
           </tr>
         </thead>
         <tbody>
-          {% for data_provider, incidents in broken_rules.iteritems() %}
+          {% for portal, datasets in schema.portal_statistic.iteritems() %}
             <tr>
-              <td>{{ data_provider }}</td>
-              <td>{{ incidents|count }} von {{ datasets_per_portal[data_provider]|count }}</td>
+              <td>{{ portal }}</td>
+              <td>{{ datasets }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -36,9 +36,9 @@
           </tr>
         </thead>
         <tbody>
-          {% for path, count in field_paths.iteritems() %}
+          {% for field, count in schema.rule_statistic.iteritems() %}
             <tr>
-              <td>{{ path }}</td>
+              <td>{{ field }}</td>
               <td>{{ count }}</td>
             </tr>
           {% endfor %}
@@ -51,12 +51,12 @@
   <div class="row">
     <div class="col-md-12">
       <ul class="nav nav-pills">
-        {% for portal, datasets in broken_rules.iteritems() %}
+        {% for portal, datasets in schema.broken_rules.iteritems() %}
           <li class="{{ "active" if loop.index == 1 }}"><a href="#{{ portal|replace(".","-") }}" data-toggle="pill">{{ portal }}</a></li>
         {% endfor %}
       </ul>
       <div class="pill-content">
-        {% for portal, datasets in broken_rules.iteritems() %}
+        {% for portal, datasets in schema.broken_rules.iteritems() %}
           <div id="{{ portal|replace(".","-") }}" class="pill-pane {{ "active" if loop.index == 1 }}">
             <table id="broken-rules-table" class="table table-bordered">
               <thead>

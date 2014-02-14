@@ -1,6 +1,7 @@
 from ckan.logic import get_action
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.validators import link_checker
+from ckanext.govdatade.validators import schema_checker
 from collections import defaultdict
 from math import ceil
 
@@ -110,6 +111,9 @@ def generate_link_checker_data(data):
     data['entries'] = []
 
     for record in checker.get_records():
+        if 'urls' not in record:
+            continue
+
         for url, entry in record['urls'].iteritems():
             if type(entry['status']) == int:
                 entry['status'] = 'HTTP %s' % entry['status']
@@ -122,3 +126,31 @@ def generate_link_checker_data(data):
     lc_stats = data['linkchecker']
     lc_stats['count'] = sum(data['portals'].values())
     lc_stats['working'] = num_metadata - lc_stats['count']
+
+
+def generate_schema_checker_data(data):
+    validator = schema_checker.SchemaChecker()
+
+    data['schema']['portal_statistic'] = defaultdict(int)
+    data['schema']['rule_statistic'] = defaultdict(int)
+    data['schema']['broken_rules'] = defaultdict(defaultdict)
+
+    portals = data['schema']['portal_statistic']
+    rules = data['schema']['rule_statistic']
+    broken_rules = data['schema']['broken_rules']
+
+    for record in validator.get_records():
+        dataset_id = record['id']
+        portal = record['metadata_original_portal']
+
+        portals[portal] += 1
+
+        if 'schema' not in record:
+            continue
+
+        broken_rules[portal][dataset_id] = record['schema']
+        for broken_rule in record['schema']:
+            rules[broken_rule[0]] += 1
+
+    sc_stats = data['schemachecker']
+    sc_stats['invalid'] = sum(portals.values())

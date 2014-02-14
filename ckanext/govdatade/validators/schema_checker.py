@@ -47,3 +47,12 @@ class SchemaChecker:
 
         record['schema'] = broken_rules
         self.redis_client.set(dataset_id, record)
+
+        return not broken_rules
+
+    def get_records(self):
+        result = []
+        for dataset_id in self.redis_client.keys('*'):
+            result.append(eval(self.redis_client.get(dataset_id)))
+
+        return result

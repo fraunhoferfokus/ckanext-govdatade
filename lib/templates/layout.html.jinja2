@@ -10,6 +10,9 @@
       window.nimbus = {};
       nimbus.workingResources = {{ linkchecker.working }};
       nimbus.totalResources = {{ linkchecker.count }};
+
+      nimbus.schemaInvalidDatasets = {{ schemachecker.invalid }};
+      nimbus.totalDatasets = {{ num_datasets }};
     //]]>
   </script>
   <script type="text/javascript" src="assets/js/jquery-2.0.3.min.js"></script>
@@ -35,7 +38,7 @@
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-8">
         <ul class="nav navbar-nav">
           <li><a href="linkchecker.html">Verweisprüfer</a></li>
-          <li><a href="schema-validation.html">Schemaprüfer</a></li>
+          <li><a href="schemachecker.html">Schemaprüfer</a></li>
         </ul>
       </div><!-- /.navbar-collapse -->
     </div>

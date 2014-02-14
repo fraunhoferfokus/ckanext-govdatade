@@ -38,6 +38,7 @@ setup(
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
+    report = ckanext.govdatade.commands.report:Report
 
     [nose.plugins]
     pylons = pylons.test:PylonsPlugin
