@@ -12,6 +12,7 @@ from ckanext.govdatade.util import copy_report_asset_files
 from ckanext.govdatade.util import normalize_action_dataset
 from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.util import iterate_local_datasets
+from ckanext.govdatade.validators import schema_checker
 
 from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
@@ -24,7 +25,7 @@ import os
 import urllib2
 
 
-class Validator(CkanCommand):
+class SchemaChecker(CkanCommand):
     '''Validates datasets against the GovData.de JSON schema'''
 
     summary = __doc__.split('\n')[0]
@@ -32,8 +33,7 @@ class Validator(CkanCommand):
     SCHEMA_URL = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json'  # NOQA
 
     def __init__(self, name):
-        super(Validator, self).__init__(name)
-        self.schema = json.loads(urllib2.urlopen(self.SCHEMA_URL).read())
+        super(SchemaChecker, self).__init__(name)
 
     def get_dataset_count(self, ckan):
         print 'Retrieve total number of datasets'
@@ -103,7 +103,7 @@ class Validator(CkanCommand):
                 'validate':    False}
 
     def command(self):
-        super(Validator, self)._load_config()
+        super(SchemaChecker, self)._load_config()
         context = self.create_context()
 
         data = {'field_paths':         defaultdict(int),
@@ -118,23 +118,25 @@ class Validator(CkanCommand):
                        'session':     model.Session,
                        'ignore_auth': True}
 
+            validator = schema_checker.SchemaChecker()
+
             for i, dataset in enumerate(iterate_local_datasets(context)):
                 print 'Processing dataset %s' % i
-                self.validate_datasets(dataset, data)
-                break
+                normalize_action_dataset(dataset)
+                validator.process_record(dataset)
 
-            copy_report_asset_files()
-            copy_report_vendor_files()
-
-            generate_link_checker_data(data)
-
-            template_file = 'schema-validation.html.jinja2'
-            rendered_template = self.render_template(template_file, data)
-            self.write_validation_result(rendered_template, template_file)
-
-            template_file = 'index.html.jinja2'
-            rendered_template = self.render_template(template_file, data)
-            self.write_validation_result(rendered_template, template_file)
+#            copy_report_asset_files()
+#            copy_report_vendor_files()
+#
+#            generate_link_checker_data(data)
+#
+#            template_file = 'schema-validation.html.jinja2'
+#            rendered_template = self.render_template(template_file, data)
+#            self.write_validation_result(rendered_template, template_file)
+#
+#            template_file = 'index.html.jinja2'
+#            rendered_template = self.render_template(template_file, data)
+#            self.write_validation_result(rendered_template, template_file)
 
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]

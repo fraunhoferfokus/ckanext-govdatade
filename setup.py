@@ -36,7 +36,7 @@ setup(
     datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
 
     [paste.paster_command]
-    validator = ckanext.govdatade.commands.validator:Validator
+    schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
 
     [nose.plugins]
