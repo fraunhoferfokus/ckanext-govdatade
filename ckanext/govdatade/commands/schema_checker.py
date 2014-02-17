@@ -122,7 +122,7 @@ class SchemaChecker(CkanCommand):
                 num_datasets += 1
 
             general = {'num_datasets': num_datasets}
-            validator.redis_client.set(general)
+            validator.redis_client.set('general', general)
 
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]

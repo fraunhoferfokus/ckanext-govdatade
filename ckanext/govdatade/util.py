@@ -154,3 +154,9 @@ def generate_schema_checker_data(data):
 
     sc_stats = data['schemachecker']
     sc_stats['invalid'] = sum(portals.values())
+
+
+def generate_general_data(data):
+    validator = schema_checker.SchemaChecker()
+    redis = validator.redis_client
+    data['num_datasets'] = eval(redis.get('general'))['num_datasets']

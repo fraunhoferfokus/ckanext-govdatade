@@ -7,8 +7,10 @@ from ckan.lib.cli import CkanCommand
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.util import copy_report_vendor_files
 from ckanext.govdatade.util import copy_report_asset_files
+
 from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.util import generate_schema_checker_data
+from ckanext.govdatade.util import generate_general_data
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -25,6 +27,8 @@ class Report(CkanCommand):
 
     def generate_report(self):
         data = defaultdict(defaultdict)
+
+        generate_general_data(data)
         generate_link_checker_data(data)
         generate_schema_checker_data(data)
 

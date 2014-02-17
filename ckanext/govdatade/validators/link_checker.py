@@ -137,6 +137,8 @@ class LinkChecker:
     def get_records(self):
         result = []
         for dataset_id in self.redis_client.keys('*'):
+            if dataset_id == 'general':
+                continue
             result.append(eval(self.redis_client.get(dataset_id)))
 
         return result
