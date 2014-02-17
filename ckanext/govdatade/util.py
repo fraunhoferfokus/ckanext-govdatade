@@ -9,7 +9,6 @@ import ckanclient
 import distutils.dir_util
 import json
 import os
-import requests
 
 
 def iterate_remote_datasets(endpoint, max_rows=1000):
@@ -103,8 +102,8 @@ def is_valid(source):
 
 def generate_link_checker_data(data):
     checker = link_checker.LinkChecker()
-    url = 'https://www.govdata.de/ckan/api/action/package_search?q='
-    num_metadata = requests.get(url).json()['result']['count']
+    redis = checker.redis_client
+    num_metadata = eval(redis.get('general'))['num_datasets']
 
     data['linkchecker'] = {}
     data['portals'] = defaultdict(int)
@@ -124,12 +123,14 @@ def generate_link_checker_data(data):
             data['entries'].append(record)
 
     lc_stats = data['linkchecker']
-    lc_stats['count'] = sum(data['portals'].values())
-    lc_stats['working'] = num_metadata - lc_stats['count']
+    lc_stats['broken'] = sum(data['portals'].values())
+    lc_stats['working'] = num_metadata - lc_stats['broken']
 
 
 def generate_schema_checker_data(data):
     validator = schema_checker.SchemaChecker()
+    redis = validator.redis_client
+    num_metadata = eval(redis.get('general'))['num_datasets']
 
     data['schema']['portal_statistic'] = defaultdict(int)
     data['schema']['rule_statistic'] = defaultdict(int)
@@ -138,6 +139,8 @@ def generate_schema_checker_data(data):
     portals = data['schema']['portal_statistic']
     rules = data['schema']['rule_statistic']
     broken_rules = data['schema']['broken_rules']
+
+    broken = 0
 
     for record in validator.get_records():
         dataset_id = record['id']
@@ -148,12 +151,16 @@ def generate_schema_checker_data(data):
         if 'schema' not in record:
             continue
 
+        if record['schema']:
+            broken += 1
+
         broken_rules[portal][dataset_id] = record['schema']
         for broken_rule in record['schema']:
             rules[broken_rule[0]] += 1
 
     sc_stats = data['schemachecker']
-    sc_stats['invalid'] = sum(portals.values())
+    sc_stats['broken'] = broken
+    sc_stats['working'] = num_metadata - sc_stats['broken']
 
 
 def generate_general_data(data):

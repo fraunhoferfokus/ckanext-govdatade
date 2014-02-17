@@ -119,6 +119,7 @@ class SchemaChecker(CkanCommand):
             for i, dataset in enumerate(iterate_local_datasets(context)):
                 print 'Processing dataset %s' % i
                 normalize_action_dataset(dataset)
+                validator.process_record(dataset)
                 num_datasets += 1
 
             general = {'num_datasets': num_datasets}

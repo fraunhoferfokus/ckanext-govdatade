@@ -2,13 +2,13 @@
 {% block body %}
   <h1>Verweisprüfer</h1>
   <div class="row">
-    <div class="col-md-5 col-md-offset-2">
+    <div class="col-md-12">
       <h2>Übersicht</h2>
       <p>Folgend die Übersicht der Datenbereitsteller die betroffenen sind von toten Links in einzelnen Metadatensätzen.</p>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-5 col-md-offset-2">
+    <div class="col-md-12">
         <table class="overview table table-striped table-bordered">
           <thead>
             <tr>
@@ -23,7 +23,7 @@
                   <div class="row">
                     <div class="col-md-9">{{ portal }}</div>
                     <div class="col-md-3">
-                      <div class="bar" style="width:{{ broken_records / linkchecker.count * 5}} em"></div>
+                      <div class="bar" style="width:{{ broken_records / portals.values()|sum * 20}}em"></div>
                     </div>
                   </div>
                 </td>
@@ -39,18 +39,15 @@
           </tbody>
         </table>
     </div>
-    <div class="col-md-4">
-      <div id="pie-chart"></div>
-    </div>
   </div>
   <div class="row">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-md-12">
       <h2>Analyse</h2>
         <p>Übersicht der einzelnen Datensätze die pro Metadatensatz betroffen sind.</p>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-md-12">
       <table class="analysis table table-striped table-bordered">
         <thead>
           <tr>

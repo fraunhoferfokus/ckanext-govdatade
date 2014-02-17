@@ -8,11 +8,11 @@
   <script type="text/javascript">
     //<![CDATA[
       window.nimbus = {};
-      nimbus.workingResources = {{ linkchecker.working }};
-      nimbus.totalResources = {{ linkchecker.count }};
+      nimbus.linkcheckerWorking = {{ linkchecker.working }};
+      nimbus.linkcheckerBroken = {{ linkchecker.broken }};
 
-      nimbus.schemaInvalidDatasets = {{ schemachecker.invalid }};
-      nimbus.totalDatasets = {{ num_datasets }};
+      nimbus.schemacheckerWorking = {{ schemachecker.working }};
+      nimbus.schemacheckerBroken = {{ schemachecker.broken }};
     //]]>
   </script>
   <script type="text/javascript" src="assets/js/jquery-2.0.3.min.js"></script>
