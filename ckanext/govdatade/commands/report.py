@@ -11,6 +11,7 @@ from ckanext.govdatade.util import copy_report_asset_files
 from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.util import generate_schema_checker_data
 from ckanext.govdatade.util import generate_general_data
+from ckanext.govdatade.util import amend_portal
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -48,6 +49,8 @@ class Report(CkanCommand):
         template_dir = os.path.abspath(template_dir)
 
         environment = Environment(loader=FileSystemLoader(template_dir))
+        environment.globals.update(amend_portal=amend_portal)
+
         template = environment.get_template(template_file)
         return template.render(data)
 

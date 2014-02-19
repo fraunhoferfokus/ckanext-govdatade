@@ -22,8 +22,6 @@ class SchemaChecker:
         record = self.redis_client.get(dataset_id)
 
         portal = dataset['extras'].get('metadata_original_portal', 'null')
-        portal = portal.replace('http://', '')
-        portal = portal.replace('/', '')
 
         if record is None:
             record = {'id': dataset_id, 'metadata_original_portal': portal}
