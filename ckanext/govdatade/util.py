@@ -2,6 +2,7 @@ from ckan.logic import get_action
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.validators import link_checker
 from ckanext.govdatade.validators import schema_checker
+from datetime import datetime
 from collections import defaultdict
 from math import ceil
 
@@ -166,4 +167,19 @@ def generate_schema_checker_data(data):
 def generate_general_data(data):
     validator = schema_checker.SchemaChecker()
     redis = validator.redis_client
+
     data['num_datasets'] = eval(redis.get('general'))['num_datasets']
+    data['timestamp'] = datetime.today().strftime("%Y-%m-%d %H:%M")
+
+
+def amend_portal(portal):
+    portal = portal.replace(':', '-')
+    portal = portal.replace('/', '-')
+    portal = portal.replace('.', '-')
+
+    portal = portal.replace('&', '-')
+    portal = portal.replace('?', '-')
+    portal = portal.replace('=', '-')
+
+    return portal
+

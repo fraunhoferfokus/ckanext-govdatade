@@ -1,10 +1,20 @@
 h1 {
   text-align: center;
   margin-bottom: 2em;
+  margin-top: 1em;
 }
 
 h1, h2, h3 {
   margin-bottom: 0.75em;
+}
+
+footer {
+  margin-left: 30px;
+  margin-right: 30px;
+  margin-top: 45px;
+  padding-top: 5px;
+  border-top: 1px solid #eaeaea;
+  color: #999;
 }
 
 #broken-rules-table tbody tr td[rowspan] {
