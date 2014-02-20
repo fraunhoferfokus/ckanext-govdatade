@@ -6,7 +6,7 @@
   <p>Die Anzahl der Datensätze mit Regelverletzungen des Schemas pro Datenbereitsteller.</p>
   <div class="row">
     <div class="col-md-12">
-      <table class="table table-striped table-bordered">
+      <table class="overview table table-striped table-bordered">
         <thead>
           <tr>
             <th>Datenbereitsteller</th>
@@ -14,9 +14,17 @@
           </tr>
         </thead>
         <tbody>
-          {% for portal, datasets in schema.portal_statistic.iteritems() %}
+          {% for portal, datasets in schema.portal_statistic|dictsort(false, 'value')|reverse %}
             <tr>
-              <td>{{ portal }}</td>
+              <td>
+                <div class="row">
+                  <div class="col-md-8">{{ portal }}</div>
+                  <div class="col-md-4">
+                    <div class="bar" style="width:{{ datasets / schema.portal_statistic.values()|sum * 20 }}em">
+                  </div>
+                </div>
+                </div>
+              </td>
               <td>{{ datasets }}</td>
             </tr>
           {% endfor %}

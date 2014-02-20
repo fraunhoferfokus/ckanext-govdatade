@@ -48,30 +48,33 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <table class="analysis table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>URL</th>
-            <th>Fehler</th>
-            <th>Tage nicht erreichbar</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for record in entries %}
-            {% for url, analysis in record['urls'].iteritems() %}
-              <tr>
-                {% if loop.first %}
-                  <td rowspan="{{ record['urls']|length }}"><a href="https://www.govdata.de/ckan/api/rest/dataset/{{ record['id'] }}">{{ record['id'] }}</a></td>
-                {% endif %}
-                <td><a href="{{ url }}">{{ url }}</a></td>
-                <td>{{ analysis['status'] }}</td>
-                <td>{{ analysis['strikes'] }} {% if analysis['strikes'] >= 3 %}<span class="deleted"><a data-toggle="tooltip" title="Metadatensatz wurde deaktiviert">✗</a></span>{% endif %}</td>
-              </tr>
+      {% for portal, records in entries.iteritems() %}
+      <h3>{{ portal }}</h3>
+        <table class="analysis table table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>URL</th>
+              <th>Fehler</th>
+              <th>Tage nicht erreichbar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in records %}
+              {% for url, analysis in record['urls'].iteritems() %}
+                <tr>
+                  {% if loop.first %}
+                    <td rowspan="{{ record['urls']|length }}"><a href="https://www.govdata.de/ckan/api/rest/dataset/{{ record['id'] }}">{{ record['id'] }}</a></td>
+                  {% endif %}
+                  <td><a href="{{ url }}">{{ url }}</a></td>
+                  <td>{{ analysis['status'] }}</td>
+                  <td>{{ analysis['strikes'] }} {% if analysis['strikes'] >= 3 %}<span class="deleted"><a data-toggle="tooltip" title="Metadatensatz wurde deaktiviert">✗</a></span>{% endif %}</td>
+                </tr>
+              {% endfor %}
             {% endfor %}
-          {% endfor %}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      {% endfor %}
     </div>
   </div>
 {% endblock %}

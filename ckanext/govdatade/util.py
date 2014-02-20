@@ -108,7 +108,7 @@ def generate_link_checker_data(data):
 
     data['linkchecker'] = {}
     data['portals'] = defaultdict(int)
-    data['entries'] = []
+    data['entries'] = defaultdict(list)
 
     for record in checker.get_records():
         if 'urls' not in record:
@@ -121,7 +121,7 @@ def generate_link_checker_data(data):
         if 'metadata_original_portal' in record:  # legacy
             portal = record['metadata_original_portal']
             data['portals'][portal] += 1
-            data['entries'].append(record)
+            data['entries'][portal].append(record)
 
     lc_stats = data['linkchecker']
     lc_stats['broken'] = sum(data['portals'].values())
