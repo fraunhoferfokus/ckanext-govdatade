@@ -5,7 +5,6 @@ from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
 from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
 from ckanext.govdatade.util import iterate_local_datasets
-from ckanext.govdatade.util import normalize_action_dataset
 from ckanext.govdatade.validators.link_checker import LinkChecker
 from ckanext.govdatade import CONFIG
 
@@ -76,7 +75,8 @@ class GroupCKANHarvester(CKANHarvester):
         if delete:
             package_dict['state'] = 'deleted'
         else:
-            package_dict['state'] = 'active'
+            if 'deprecated' not in package_dict['tags']:
+                package_dict['state'] = 'active'
 
         try:
             self.amend_package(package_dict)
@@ -112,7 +112,7 @@ class GovDataHarvester(GroupCKANHarvester):
         return condition_check
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
-        package_update = get_action('package_update_rest')
+        package_update = get_action('package_update')
 
         local_datasets = iterate_local_datasets(context)
         filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
@@ -123,10 +123,8 @@ class GovDataHarvester(GroupCKANHarvester):
 
         for local_dataset in filtered:
             if local_dataset['name'] in deprecated:
-                print 'Deleted yet? %s' % local_dataset['state'] == 'deleted'
                 local_dataset['state'] = 'deleted'
-                context.update({'id': local_dataset['id']})
-                normalize_action_dataset(local_dataset)
+                local_dataset['tags'].append({'name': 'deprecated'})
                 package_update(context, local_dataset)
 
     def gather_stage(self, harvest_job):
