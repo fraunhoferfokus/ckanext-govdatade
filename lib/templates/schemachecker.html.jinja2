@@ -70,6 +70,7 @@
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>GovData  Detailseite</th>
                   <th>Feld</th>
                   <th>Regelverletzung</th>
                 </tr>
@@ -80,6 +81,7 @@
                     <tr>
                       {% if loop.index == 1 %}
                         <td rowspan={{ errors|count }}><a href="https://www.govdata.de/ckan/api/rest/dataset/{{ dataset_id }}">{{ dataset_id }}</a></td>
+                        <td rowspan={{ errors|count }}><a href="https://www.govdata.de/daten/-/details/{{ dataset_id }}">Detailseite</a></td>
                       {% endif %}
                       <td>{{ error[0] }}</td>
                       <td>{{ error[1] }}</td>
