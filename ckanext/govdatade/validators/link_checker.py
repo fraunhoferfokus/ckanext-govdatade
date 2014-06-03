@@ -122,14 +122,15 @@ class LinkChecker:
     def record_success(self, dataset_id, url):
         record = self.redis_client.get(dataset_id)
         if record is not None:
-            record = eval(record)
+            record = eval(unicode(record))
 
             # Remove URL entry due to working URL
-            record['urls'].pop(url, None)
+            if record.get('urls'):
+                record['urls'].pop(url, None)
 
             # Remove record entry altogether if there are no failures
             # anymore
-            if not record['urls']:
+            if not record.get('urls'):
                 self.redis_client.delete(dataset_id)
             else:
                 self.redis_client.set(dataset_id, record)
