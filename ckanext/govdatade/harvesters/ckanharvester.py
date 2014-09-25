@@ -50,8 +50,8 @@ class GroupCKANHarvester(CKANHarvester):
     """Enforce API version 1 for enabling group import"""
 
     def __init__(self):
-        schema_url = CONFIG.get('URLs', 'schema')
-        groups_url = CONFIG.get('URLs', 'groups')
+        schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json' #CONFIG.get('URLs', 'schema')
+        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json' #CONFIG.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
@@ -66,6 +66,7 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['api_version'] = 1
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
+        self.config['user'] = 'harvest'
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
@@ -262,9 +263,9 @@ class RLPCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-        schema_url = CONFIG.get('URLs', 'schema')
-        groups_url = CONFIG.get('URLs', 'groups')
-
+        schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json' #CONFIG.get('URLs', 'schema')
+        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json' #CONFIG.get('URLs', 'groups')
+       
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
@@ -495,9 +496,9 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
                 'description': 'A CKAN Harvester for Moers solving data compatibility problems.'}
 
     def amend_dataset_name(self, dataset):
-        dataset['name'] = dataset['name'].replace(u'ä', 'ae')
-        dataset['name'] = dataset['name'].replace(u'ü', 'ue')
-        dataset['name'] = dataset['name'].replace(u'ö', 'oe')
+        dataset['name'] = dataset['name'].replace(u'Ã¤', 'ae')
+        dataset['name'] = dataset['name'].replace(u'Ã¼', 'ue')
+        dataset['name'] = dataset['name'].replace(u'Ã¶', 'oe')
 
         dataset['name'] = dataset['name'].replace('(', '')
         dataset['name'] = dataset['name'].replace(')', '')
@@ -653,3 +654,167 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         package_dict['groups'].append('bildung_wissenschaft')
         package_dict['groups'] = [group for group in package_dict['groups']
                                   if group in self.govdata_groups]
+
+
+
+class KoelnCKANHarvester(GroupCKANHarvester):
+    '''
+    A CKAN Harvester for Koeln. The Harvester retrieves a JSON dump,
+    which will be loaded to CKAN.
+    '''
+    def info(self):
+        return {'name':        'koeln',
+                'title':       'Koeln CKAN Harvester',
+                'description': 'A CKAN Harvester for Koeln.'}
+
+
+
+    def gather_stage(self, harvest_job):
+        """Retrieve datasets"""
+        
+        log.debug('In KoelnCKANHarvester gather_stage (%s)' % harvest_job.source.url)
+        package_ids = []
+        self._set_config(None)
+
+        base_url = harvest_job.source.url.rstrip('/')
+        package_list_url = base_url + '/3/action/package_list'
+        
+        import cgi
+        import urllib2
+
+        r = urllib2.urlopen(package_list_url)
+        _, params = cgi.parse_header(r.headers.get('Content-Type', ''))
+        encoding = params.get('charset', 'utf-8')
+        content = r.read().decode(encoding)
+
+        
+        #content = self._get_content(package_list_url)
+        content_json = json.loads(content)
+        package_ids = content_json['result']
+
+        try:
+            object_ids = []
+            if len(package_ids):
+                for package_id in package_ids:                    # Create a new HarvestObject for this identifier
+                    package_id = package_id.encode('utf-8')                    
+                    obj = HarvestObject(guid = package_id, job = harvest_job)
+                    obj.save()
+                    object_ids.append(obj.id)
+
+                return object_ids
+
+            else:
+               self._save_gather_error('No packages received for URL: %s' % url,
+                       harvest_job)
+               return None
+        except Exception, e:
+            self._save_gather_error('%r'%e.message,harvest_job)
+
+
+
+    def fetch_stage(self,harvest_object):
+        log.debug('In KoelnCKANHarvester fetch_stage')
+
+        self._set_config(None)
+
+        base_url = harvest_object.source.url.rstrip('/')
+        package_get_url = base_url + '/3/ogdp/action/package_show?id=' + harvest_object.guid
+        # Get contents
+        try:
+            
+            import requests
+            
+            url = unicode(package_get_url).encode("utf-8")
+            r = requests.get(url)
+            content = r.text
+            #content = self._get_content(package_get_url)
+            package = json.loads(content)
+            
+        except Exception,e:
+            self._save_object_error('Unable to get content for package: %s: %r' % \
+                                        (package_get_url, e),harvest_object)
+            return None
+
+        # Save the fetched contents in the HarvestObject
+        #harvest_object.content = json.dumps(package['result'][0])
+        harvest_object.content = json.dumps(package['result'][0])
+        harvest_object.save()
+        return True
+
+
+
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('Koeln: ' + str(e))
+            return
+      
+        harvest_object.content = json.dumps(package_dict)
+        super(KoelnCKANHarvester, self).import_stage(harvest_object)
+
+
+    
+        
+    def amend_package(self, package):
+        # map these two group names to schema group names
+        out = []
+        if 'Geo' in package['groups']:
+            package['groups'].append('geo')
+
+        if 'Bildung und Wissenschaft' in package['groups']:
+            package['groups'].append('bildung_wissenschaft')
+
+        if 'Gesetze und Justiz' in package['groups']:
+            package['groups'].append('gesetze_justiz')
+
+        if 'Gesundheit' in package['groups']:
+            package['groups'].append('gesundheit')
+                  
+        if 'Infrastruktur' in package['groups']:
+            package['groups'].append('infrastruktur_bauen_wohnen')
+
+        if 'Kultur' in package['groups']:
+            package['groups'].append('kultur_freizeit_sport_tourismus')
+            
+        if 'Politik und Wahlen' in package['groups']:
+            package['groups'].append('politik_wahlen')
+            
+        if 'Soziales' in package['groups']:
+            package['groups'].append('soziales')      
+
+        if 'Transport und Verkehr' in package['groups']:
+            package['groups'].append('transport_verkehr')     
+         
+        if 'Umwelt und Klima' in package['groups']:
+            package['groups'].append('umwelt_klima')        
+             
+        if 'Verbraucherschutz' in package['groups']:
+            package['groups'].append('verbraucher')     
+            
+        if 'Verwaltung' in package['groups']:
+            package['groups'].append('verwaltung')         
+     
+        if 'Wirtschaft und Arbeit' in package['groups']:
+            package['groups'].append('wirtschaft_arbeit')         
+        
+        for cat in package['groups']:
+            if 'Bev' in cat:
+                package['groups'].append('bevoelkerung')   
+          
+
+        from ckan.lib.munge import munge_title_to_name
+        name = str(package['name'])
+        name = munge_title_to_name(name).replace('_', '-')
+        while '--' in name:
+            name = name.replace('--', '-')
+        package['name'] = name
+        
+        
+    
+        
+
+
+
