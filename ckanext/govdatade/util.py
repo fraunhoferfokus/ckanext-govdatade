@@ -1,4 +1,4 @@
-from ckan.logic import get_action
+from ckan.logic import get_action, NotFound
 from ckanext.govdatade import CONFIG
 from ckanext.govdatade.validators import link_checker
 from ckanext.govdatade.validators import schema_checker
@@ -39,8 +39,12 @@ def iterate_local_datasets(context, rows=1000):
     package_show = get_action('package_show')
 
     for dataset_name in package_list(context, None):
-        dataset = package_show(context, {'id': dataset_name})
-        yield dataset
+        try:
+	    dataset = package_show(context, {'id': dataset_name})
+            yield dataset
+        except NotFound:
+            print dataset_name
+            pass
 
 
 def normalize_action_dataset(dataset):
@@ -147,11 +151,12 @@ def generate_schema_checker_data(data):
         dataset_id = record['id']
         portal = record['metadata_original_portal']
 
-        portals[portal] += 1
 
-        if 'schema' not in record:
+        if 'schema' not in record or not record['schema']:
             continue
 
+        portals[portal] += 1
+        
         if record['schema']:
             broken += 1
 

@@ -8,7 +8,7 @@ import socket
 class LinkChecker:
 
     HEADERS = {'User-Agent': 'curl/7.29.0'}
-    TIMEOUT = 10.0
+    TIMEOUT = 30.0
 
     def __init__(self, db='production'):
         redis_db_dict = {'production': 0, 'test': 1}

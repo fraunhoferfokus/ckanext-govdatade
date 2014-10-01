@@ -5,6 +5,7 @@ syntax: glob
 *~
 .ropeproject
 dist
-
+/build
+pip-log.txt
 output/validation.html
 *.log
