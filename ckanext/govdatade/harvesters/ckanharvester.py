@@ -496,9 +496,9 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
                 'description': 'A CKAN Harvester for Moers solving data compatibility problems.'}
 
     def amend_dataset_name(self, dataset):
-        dataset['name'] = dataset['name'].replace(u'ä', 'ae')
-        dataset['name'] = dataset['name'].replace(u'ü', 'ue')
-        dataset['name'] = dataset['name'].replace(u'ö', 'oe')
+        dataset['name'] = dataset['name'].replace(u'Ã¤', 'ae')
+        dataset['name'] = dataset['name'].replace(u'Ã¼', 'ue')
+        dataset['name'] = dataset['name'].replace(u'Ã¶', 'oe')
 
         dataset['name'] = dataset['name'].replace('(', '')
         dataset['name'] = dataset['name'].replace(')', '')
@@ -654,6 +654,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         package_dict['groups'].append('bildung_wissenschaft')
         package_dict['groups'] = [group for group in package_dict['groups']
                                   if group in self.govdata_groups]
+
 
 
 
@@ -819,6 +820,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
         
     
         
+
 
 
 
