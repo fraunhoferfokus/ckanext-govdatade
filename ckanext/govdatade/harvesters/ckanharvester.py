@@ -816,7 +816,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
                 log.debug('Encoding Error ' + str(e))
             
         package['name'] = name
-        package['extras']['full_text_search'] = name+'123'
+        
         
     
         
