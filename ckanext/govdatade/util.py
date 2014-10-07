@@ -149,7 +149,7 @@ def generate_schema_checker_data(data):
 
         portals[portal] += 1
 
-        if 'schema' not in record:
+        if 'schema' not in record or not record['schema']:
             continue
 
         if record['schema']:

@@ -67,8 +67,6 @@ class SchemaChecker(CkanCommand):
 
         identifier = dataset['id']
         portal = dataset['extras'].get('metadata_original_portal', 'null')
-        portal = portal.replace('http://', '')
-        portal = portal.replace('/', '')
 
         data['broken_rules'][portal][identifier] = []
         broken_rules = data['broken_rules'][portal][identifier]

@@ -34,6 +34,9 @@ setup(
     rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
     govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
     datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
+    bkg_harvester=ckanext.govdatade.harvesters.ckanharvester:BKGHarvester
+    destatis_harvester=ckanext.govdatade.harvesters.ckanharvester:DestatisZipHarvester
+    koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
 
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker

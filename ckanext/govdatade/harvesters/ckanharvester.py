@@ -70,20 +70,20 @@ class GroupCKANHarvester(CKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         delete = self.link_checker.process_record(package_dict)
-
         # deactivated until broken links are fixed
         if delete:
             package_dict['state'] = 'deleted'
         else:
             if 'deprecated' not in package_dict['tags']:
                 package_dict['state'] = 'active'
-
+        '''
         try:
             self.amend_package(package_dict)
         except ValueError, e:
             self._save_object_error(str(e), harvest_object)
             log.error('Rostock: ' + str(e))
             return
+        '''
         harvest_object.content = json.dumps(package_dict)
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
@@ -152,7 +152,7 @@ class GovDataHarvester(GroupCKANHarvester):
         super(GovDataHarvester, self).gather_stage(harvest_job)
 
 
-class RostockCKANHarvester(GroupCKANHarvester):
+class RostockCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rostock solving data compatibility problems."""
 
     PORTAL = 'http://www.opendata-hro.de'
@@ -167,6 +167,8 @@ class RostockCKANHarvester(GroupCKANHarvester):
         portal = 'http://www.opendata-hro.de'
         package['extras']['metadata_original_portal'] = portal
         package['name'] = package['name'] + '-hro'
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
@@ -180,7 +182,7 @@ class RostockCKANHarvester(GroupCKANHarvester):
         super(RostockCKANHarvester, self).import_stage(harvest_object)
 
 
-class HamburgCKANHarvester(GroupCKANHarvester):
+class HamburgCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
 
     def info(self):
@@ -195,6 +197,9 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         # add tag for better searchability
         package['tags'].append(u'Hamburg')
+	for resource in package['resources']:
+		resource['format'] = resource['format'].lower()
+
         assert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
@@ -210,7 +215,7 @@ class HamburgCKANHarvester(GroupCKANHarvester):
         super(HamburgCKANHarvester, self).import_stage(harvest_object)
 
 
-class BerlinCKANHarvester(GroupCKANHarvester):
+class BerlinCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Berlin sovling data compatibility problems."""
 
     def info(self):
@@ -240,6 +245,8 @@ class BerlinCKANHarvester(GroupCKANHarvester):
         default_portal = 'http://datenregister.berlin.de'
         if not extras.get('metadata_original_portal'):
             extras['metadata_original_portal'] = default_portal
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
         return True
 
     def import_stage(self, harvest_object):
@@ -253,7 +260,7 @@ class BerlinCKANHarvester(GroupCKANHarvester):
         super(BerlinCKANHarvester, self).import_stage(harvest_object)
 
 
-class RLPCKANHarvester(GroupCKANHarvester):
+class RLPCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rhineland-Palatinate sovling data compatibility problems."""
 
     def info(self):
@@ -275,6 +282,9 @@ class RLPCKANHarvester(GroupCKANHarvester):
             package_dict['type'] = 'dokument'
         else:
             package_dict['type'] = 'datensatz'
+
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
 
         assert_author_fields(package_dict, package_dict['point_of_contact'],
                              package_dict['point_of_contact_address']['email'])
@@ -423,6 +433,9 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
         #that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
 
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
+
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
 
@@ -474,6 +487,8 @@ class BayernCKANHarvester(JSONDumpBaseCKANHarvester):
         #generate id based on OID namespace and package name, this makes sure,
         #that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
@@ -545,6 +560,9 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
             resource['format'] = resource['format'].replace('application/json', 'JSON')
             resource['format'] = resource['format'].replace('application/xml', 'XML')
 
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
+
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         try:
@@ -579,6 +597,9 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
         #generate id based on OID namespace and package name, this makes sure,
         #that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        
+	for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
@@ -587,6 +608,102 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         super(GovAppsHarvester, self).import_stage(harvest_object)
+
+
+class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
+    
+    def info(self):
+        return {'name':        'zipbase',
+                'title':       'Base Zip Harvester',
+                'description': 'A Harvester for Portals, which return JSON files in a zip file.'}
+
+    def gather_stage(self, harvest_job):
+        self._set_config(harvest_job.source.config)
+        # Request all remote packages
+        try:
+            content = self._get_content(harvest_job.source.url)
+        except Exception, e:
+            self._save_gather_error('Unable to get content for URL: %s: %s' % (harvest_job.source.url, str(e)), harvest_job)
+            return None
+
+        object_ids = []
+	packages = []
+        import zipfile
+	import StringIO
+	file_content = StringIO.StringIO(content)
+        archive = zipfile.ZipFile(file_content, "r")
+        for name in archive.namelist():
+	    print name
+	    if name.endswith(".json"):
+		package = json.loads(archive.read(name))
+		packages.append(package)
+		obj = HarvestObject(guid=package['name'], job=harvest_job)
+           	obj.content = json.dumps(package)
+            	obj.save()
+            	object_ids.append(obj.id)
+	'''
+        context = self.build_context()
+        remote_dataset_names = map(lambda d: d['name'], packages)
+        self.delete_deprecated_datasets(context, remote_dataset_names)
+        
+	'''
+
+	if object_ids:
+            return object_ids
+        else:
+            self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
+                                    harvest_job)
+            return None
+
+
+class BKGHarvester(JSONZipBaseHarvester):
+    PORTAL = 'http://ims.geoportal.de/'
+
+    def info(self):
+        return {'name':        'bkg',
+                'title':       'BKG CKAN Harvester',
+                'description': 'A CKAN Harvester for BKG.'}
+
+    def amend_package(self, package):
+	#generate id based on OID namespace and package name, this makes sure,
+        #that packages with the same name get the same id
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        package['extras']['metadata_original_portal'] = 'http://ims.geoportal.de/'
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
+
+
+class DestatisZipHarvester(JSONZipBaseHarvester):
+    PORTAL = 'http://destatis.de/'
+    def info(self):
+        return {'name':        'destatis',
+                'title':       'Destatis CKAN Harvester',
+                'description': 'A CKAN Harvester for destatis.'}
+
+    def amend_package(self, package):
+        #generate id based on OID namespace and package name, this makes sure,
+        #that packages with the same name get the same id
+	package['name'] = package['name'] + "-test"
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        package['extras']['metadata_original_portal'] = 'http://destatis.de/'
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
 
 
 class DatahubCKANHarvester(GroupCKANHarvester):
@@ -649,7 +766,166 @@ class DatahubCKANHarvester(GroupCKANHarvester):
             if description_invalid or (type_only and name_valid):
                 resource['description'] = resource['name']
 
+        for resource in package['resources']:
+                resource['format'] = resource['format'].lower()
+
         package_dict['extras']['metadata_original_portal'] = portal
         package_dict['groups'].append('bildung_wissenschaft')
         package_dict['groups'] = [group for group in package_dict['groups']
                                   if group in self.govdata_groups]
+
+class KoelnCKANHarvester(GroupCKANHarvester):
+    '''
+    A CKAN Harvester for Koeln. The Harvester retrieves a JSON dump,
+    which will be loaded to CKAN.
+    '''
+    def info(self):
+        return {'name':        'koeln',
+                'title':       'Koeln CKAN Harvester',
+                'description': 'A CKAN Harvester for Koeln.'}
+
+
+
+    def gather_stage(self, harvest_job):
+        """Retrieve datasets"""
+        
+        log.debug('In KoelnCKANHarvester gather_stage (%s)' % harvest_job.source.url)
+        package_ids = []
+        self._set_config(None)
+
+        base_url = harvest_job.source.url.rstrip('/')
+        package_list_url = base_url + '/3/action/package_list'
+        content = self._get_content(package_list_url)
+        
+        content_json = json.loads(content)
+        package_ids = content_json['result']
+
+        try:
+            object_ids = []
+            if len(package_ids):
+                for package_id in package_ids:                                      
+                    obj = HarvestObject(guid = package_id, job = harvest_job)
+                    obj.save()
+                    object_ids.append(obj.id)
+                return object_ids
+
+            else:
+               self._save_gather_error('No packages received for URL: %s' % url,
+                       harvest_job)
+               return None
+        except Exception, e:
+            self._save_gather_error('%r'%e.message,harvest_job)
+
+
+
+    def fetch_stage(self,harvest_object):
+        log.debug('In KoelnCKANHarvester fetch_stage')
+        self._set_config(None)
+       
+        # Get contents
+        package_get_url = ''
+        try:    
+            base_url = harvest_object.source.url.rstrip('/')
+      
+            package_get_url = base_url + '/3/ogdp/action/package_show?id=' + harvest_object.guid
+            content = self._get_content(package_get_url.encode("utf-8"))
+            package = json.loads(content)
+            harvest_object.content = json.dumps(package['result'][0])
+            harvest_object.save()
+
+        except Exception,e:
+            self._save_object_error('Unable to get content for package: %s: %r' % \
+                                        (package_get_url, e),harvest_object)
+            return None
+
+        return True
+
+def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        try:
+            self.amend_package(package_dict)
+        except ValueError, e:
+            self._save_object_error(str(e), harvest_object)
+            log.error('Koeln: ' + str(e))
+            return
+      
+        harvest_object.content = json.dumps(package_dict)
+        super(KoelnCKANHarvester, self).import_stage(harvest_object)
+
+def amend_package(self, package):
+        # map these two group names to schema group names
+        out = []
+        if 'Geo' in package['groups']:
+            package['groups'].append('geo')
+            package['groups'].remove('Geo')
+
+        if 'Bildung und Wissenschaft' in package['groups']:
+            package['groups'].append(u'bildung_wissenschaft')
+            package['groups'].remove('Bildung und Wissenschaft')
+
+        if 'Gesetze und Justiz' in package['groups']:
+            package['groups'].append(u'gesetze_justiz')
+            package['groups'].remove('Gesetze und Justiz')
+
+        if 'Gesundheit' in package['groups']:
+            package['groups'].append(u'gesundheit')
+            package['groups'].remove('Gesundheit')
+                  
+        if 'Infrastruktur' in package['groups']:
+            package['groups'].append(u'infrastruktur_bauen_wohnen')
+            package['groups'].remove('Infrastruktur')
+            package['groups'].remove('Bauen und Wohnen')
+            
+        if 'Kultur' in package['groups']:
+            package['groups'].append(u'kultur_freizeit_sport_tourismus')
+            package['groups'].remove('Kultur')
+            package['groups'].remove('Freizeit')
+            package['groups'].remove('Sport und Tourismus')
+            
+        if 'Politik und Wahlen' in package['groups']:
+            package['groups'].append(u'politik-wahlen')
+            package['groups'].append('Politik und Wahlen')
+            
+        if 'Soziales' in package['groups']:
+            package['groups'].append(u'soziales')   
+            package['groups'].remove('Soziales')   
+
+        if 'Transport und Verkehr' in package['groups']:
+            package['groups'].append(u'transport_verkehr')
+            package['groups'].remove('Transport und Verkehr')     
+         
+        if 'Umwelt und Klima' in package['groups']:
+            package['groups'].append(u'umwelt_klima')   
+            package['groups'].remove('Umwelt und Klima')      
+             
+        if 'Verbraucherschutz' in package['groups']:
+            package['groups'].append(u'verbraucher') 
+            package['groups'].remove('Verbraucherschutz')  
+            
+        if 'Verwaltung' in package['groups']:
+            package['groups'].append(u'verwaltung')
+            package['groups'].remove('Verwaltung')   
+            package['groups'].remove('Haushalt und Steuern') 
+                    
+     
+        if 'Wirtschaft und Arbeit' in package['groups']:
+            package['groups'].append(u'wirtschaft_arbeit')
+            package['groups'].remove('Wirtschaft und Arbeit')           
+        
+        for cat in package['groups']:
+            if 'Bev' in cat:
+                package['groups'].append(u'bevoelkerung')   
+
+	from ckan.lib.munge import munge_title_to_name
+        name = package['name']
+        try:
+            name = munge_title_to_name(name).replace('_', '-')
+            while '--' in name:
+                name = name.replace('--', '-')
+        except Exception,e:   
+                log.debug('Encoding Error ' + str(e))
+            
+        package['name'] = name
+        package['extras']['full_text_search'] = name+'123'
+        
+
