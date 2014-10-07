@@ -889,7 +889,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
             package['groups'].remove('Sport und Tourismus')
             
         if 'Politik und Wahlen' in package['groups']:
-            package['groups'].append(u'politik-wahlen')
+            package['groups'].append(u'politik_wahlen')
             package['groups'].append('Politik und Wahlen')
             
         if 'Soziales' in package['groups']:

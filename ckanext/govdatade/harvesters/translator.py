@@ -7,7 +7,7 @@ import urllib2
 
 
 def translate_groups(groups, source_name):
-    url = CONFIG.get('URLs', 'categories') + source_name + '2deutschland.json'
+    url = 'https://raw.github.com/fraunhoferfokus/ogd-metadata/master/kategorien/' + source_name + '2deutschland.json'
     json_string = urllib2.urlopen(url).read()
     group_dict = json.loads(json_string)
 
