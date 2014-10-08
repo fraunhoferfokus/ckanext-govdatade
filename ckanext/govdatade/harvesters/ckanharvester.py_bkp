@@ -50,8 +50,8 @@ class GroupCKANHarvester(CKANHarvester):
     """Enforce API version 1 for enabling group import"""
 
     def __init__(self):
-        schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json' #CONFIG.get('URLs', 'schema')
-        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json' #CONFIG.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
@@ -76,13 +76,14 @@ class GroupCKANHarvester(CKANHarvester):
         else:
             if 'deprecated' not in package_dict['tags']:
                 package_dict['state'] = 'active'
-
+        '''
         try:
             self.amend_package(package_dict)
         except ValueError, e:
             self._save_object_error(str(e), harvest_object)
             log.error('Rostock: ' + str(e))
             return
+        '''
         harvest_object.content = json.dumps(package_dict)
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
@@ -268,8 +269,8 @@ class RLPCKANHarvester(GovDataHarvester):
                 'description': 'A CKAN Harvester for Rhineland-Palatinate solving data compatibility problems.'}
 
     def __init__(self):
-	schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json' #CONFIG.get('URLs', 'schema')
-        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json' #CONFIG.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
@@ -839,7 +840,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
         return True
 
-    def import_stage(self, harvest_object):
+def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         try:
             self.amend_package(package_dict)
@@ -851,7 +852,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
         harvest_object.content = json.dumps(package_dict)
         super(KoelnCKANHarvester, self).import_stage(harvest_object)
 
-    def amend_package(self, package):
+def amend_package(self, package):
         # map these two group names to schema group names
         out = []
         if 'Geo' in package['groups']:
