@@ -774,6 +774,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
 
 
 
+
 class KoelnCKANHarvester(GroupCKANHarvester):
     '''
     A CKAN Harvester for Koeln. The Harvester retrieves a JSON dump,
@@ -795,29 +796,18 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
         base_url = harvest_job.source.url.rstrip('/')
         package_list_url = base_url + '/3/action/package_list'
+        content = self._get_content(package_list_url)
         
-        import cgi
-        import urllib2
-
-        r = urllib2.urlopen(package_list_url)
-        _, params = cgi.parse_header(r.headers.get('Content-Type', ''))
-        encoding = params.get('charset', 'utf-8')
-        content = r.read().decode(encoding)
-
-        
-        #content = self._get_content(package_list_url)
         content_json = json.loads(content)
         package_ids = content_json['result']
 
         try:
             object_ids = []
             if len(package_ids):
-                for package_id in package_ids:                    # Create a new HarvestObject for this identifier
-                    package_id = package_id.encode('utf-8')                    
+                for package_id in package_ids:                                      
                     obj = HarvestObject(guid = package_id, job = harvest_job)
                     obj.save()
                     object_ids.append(obj.id)
-
                 return object_ids
 
             else:
@@ -831,31 +821,24 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
     def fetch_stage(self,harvest_object):
         log.debug('In KoelnCKANHarvester fetch_stage')
-
         self._set_config(None)
-
-        base_url = harvest_object.source.url.rstrip('/')
-        package_get_url = base_url + '/3/ogdp/action/package_show?id=' + harvest_object.guid
+       
         # Get contents
-        try:
-            
-            import requests
-            
-            url = unicode(package_get_url).encode("utf-8")
-            r = requests.get(url)
-            content = r.text
-            #content = self._get_content(package_get_url)
+        package_get_url = ''
+        try:    
+            base_url = harvest_object.source.url.rstrip('/')
+      
+            package_get_url = base_url + '/3/ogdp/action/package_show?id=' + harvest_object.guid
+            content = self._get_content(package_get_url.encode("utf-8"))
             package = json.loads(content)
-            
+            harvest_object.content = json.dumps(package['result'][0])
+            harvest_object.save()
+
         except Exception,e:
             self._save_object_error('Unable to get content for package: %s: %r' % \
                                         (package_get_url, e),harvest_object)
             return None
 
-        # Save the fetched contents in the HarvestObject
-        #harvest_object.content = json.dumps(package['result'][0])
-        harvest_object.content = json.dumps(package['result'][0])
-        harvest_object.save()
         return True
 
 
@@ -880,58 +863,81 @@ class KoelnCKANHarvester(GroupCKANHarvester):
         out = []
         if 'Geo' in package['groups']:
             package['groups'].append('geo')
+            package['groups'].remove('Geo')
 
         if 'Bildung und Wissenschaft' in package['groups']:
-            package['groups'].append('bildung_wissenschaft')
+            package['groups'].append(u'bildung_wissenschaft')
+            package['groups'].remove('Bildung und Wissenschaft')
 
         if 'Gesetze und Justiz' in package['groups']:
-            package['groups'].append('gesetze_justiz')
+            package['groups'].append(u'gesetze_justiz')
+            package['groups'].remove('Gesetze und Justiz')
 
         if 'Gesundheit' in package['groups']:
-            package['groups'].append('gesundheit')
+            package['groups'].append(u'gesundheit')
+            package['groups'].remove('Gesundheit')
                   
         if 'Infrastruktur' in package['groups']:
-            package['groups'].append('infrastruktur_bauen_wohnen')
-
+            package['groups'].append(u'infrastruktur_bauen_wohnen')
+            package['groups'].remove('Infrastruktur')
+            package['groups'].remove('Bauen und Wohnen')
+            
         if 'Kultur' in package['groups']:
-            package['groups'].append('kultur_freizeit_sport_tourismus')
+            package['groups'].append(u'kultur_freizeit_sport_tourismus')
+            package['groups'].remove('Kultur')
+            package['groups'].remove('Freizeit')
+            package['groups'].remove('Sport und Tourismus')
             
         if 'Politik und Wahlen' in package['groups']:
-            package['groups'].append('politik_wahlen')
+            package['groups'].append(u'politik-wahlen')
+            package['groups'].append('Politik und Wahlen')
             
         if 'Soziales' in package['groups']:
-            package['groups'].append('soziales')      
+            package['groups'].append(u'soziales')   
+            package['groups'].remove('Soziales')   
 
         if 'Transport und Verkehr' in package['groups']:
-            package['groups'].append('transport_verkehr')     
+            package['groups'].append(u'transport_verkehr')
+            package['groups'].remove('Transport und Verkehr')     
          
         if 'Umwelt und Klima' in package['groups']:
-            package['groups'].append('umwelt_klima')        
+            package['groups'].append(u'umwelt_klima')   
+            package['groups'].remove('Umwelt und Klima')      
              
         if 'Verbraucherschutz' in package['groups']:
-            package['groups'].append('verbraucher')     
+            package['groups'].append(u'verbraucher') 
+            package['groups'].remove('Verbraucherschutz')  
             
         if 'Verwaltung' in package['groups']:
-            package['groups'].append('verwaltung')         
+            package['groups'].append(u'verwaltung')
+            package['groups'].remove('Verwaltung')   
+            package['groups'].remove('Haushalt und Steuern') 
+                    
      
         if 'Wirtschaft und Arbeit' in package['groups']:
-            package['groups'].append('wirtschaft_arbeit')         
+            package['groups'].append(u'wirtschaft_arbeit')
+            package['groups'].remove('Wirtschaft und Arbeit')           
         
         for cat in package['groups']:
             if 'Bev' in cat:
-                package['groups'].append('bevoelkerung')   
+                package['groups'].append(u'bevoelkerung')   
           
 
         from ckan.lib.munge import munge_title_to_name
-        name = str(package['name'])
-        name = munge_title_to_name(name).replace('_', '-')
-        while '--' in name:
-            name = name.replace('--', '-')
+        name = package['name']
+        try:
+            name = munge_title_to_name(name).replace('_', '-')
+            while '--' in name:
+                name = name.replace('--', '-')
+        except Exception,e:   
+                log.debug('Encoding Error ' + str(e))
+            
         package['name'] = name
         
         
     
         
+
 
 
 
