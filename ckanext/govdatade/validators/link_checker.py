@@ -20,31 +20,22 @@ class LinkChecker:
                                               db=database)
 
     def process_record(self, dataset):
-        log.debug('in process_record')
         dataset_id = dataset['id']
         delete = False
         portal = None
-	log.debug('ersten 3')
         if 'extras' in dataset and \
            'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
 	
-        log.debug('if extras completed')
         for resource in dataset['resources']:
             url = resource['url']
-            log.debug('URL = ' + url)
             try:
                 code = self.validate(resource['url'])
-                log.debug('after code')
                 if self.is_available(code):
-                    log.debug('before recordsuccess')
                     self.record_success(dataset_id, url)
-                    log.debug('after recordsuccess')
                 else:
-                    log.debug('before else mit delete=')
                     delete = delete or self.record_failure(dataset, url,
                                                            code, portal)
-                    log.debug('after else mit delete')
             except requests.exceptions.Timeout:
                 delete = delete or self.record_failure(dataset_id, url,
                                                        'Timeout', portal)
@@ -61,7 +52,6 @@ class LinkChecker:
                 delete = delete or self.record_failure(dataset_id, url,
                                                        'Timeout', portal)
         
-        log.debug('done!! Delete = '+ str(delete))
         return delete
 
     def check_dataset(self, dataset):
@@ -131,33 +121,19 @@ class LinkChecker:
         return delete
 
     def record_success(self, dataset_id, url):
-        log.debug('in record_success')
         record = self.redis_client.get(dataset_id)
-        log.debug('retrieved record from redis')
-        log.debug(record)
         if record is not None:
-            log.debug('eval??')
             record = eval(unicode(record))
-            log.debug('eval!!!')
             _type= type(record) is dict
-            log.debug('Type: ' + str(_type))
             # Remove URL entry due to working URL
-            log.debug(record)
-            log.debug('popped?')
             if record.get('urls'):
-               log.debug('if ws true!!!!!')
                record['urls'].pop(url, None)
-            log.debug('popped!')
             # Remove record entry altogether if there are no failures
             # anymore
             if not record.get('urls'):
-                log.debug('try to delete')
                 self.redis_client.delete(dataset_id)
-                log.debug('deleted dataset from redis')
             else:
-                log.debug('asdf?')
                 self.redis_client.set(dataset_id, record)
-                log.debug('asdf!!!')
 
     def get_records(self):
         result = []
