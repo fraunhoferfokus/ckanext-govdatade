@@ -39,8 +39,7 @@ setup(
     koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
    
     bkg_harvester=ckanext.govdatade.harvesters.ckanharvester:BKGHarvester
-    destatis_harvester=ckanext.govdatade.harvesters.ckanharvester:DestatisZipHarvester
-
+   
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
