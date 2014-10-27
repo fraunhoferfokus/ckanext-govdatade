@@ -78,12 +78,6 @@ class GroupCKANHarvester(CKANHarvester):
             if 'deprecated' not in package_dict['tags']:
                 package_dict['state'] = 'active'
 
-        try:
-            self.amend_package(package_dict)
-        except ValueError, e:
-            self._save_object_error(str(e), harvest_object)
-            log.error('Rostock: ' + str(e))
-            return
         harvest_object.content = json.dumps(package_dict)
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
@@ -182,7 +176,7 @@ class RostockCKANHarvester(GovDataHarvester):
         super(RostockCKANHarvester, self).import_stage(harvest_object)
 
 
-class HamburgCKANHarvester(GovDataHarvester):
+class HamburgCKANHarvester(GroupCKANHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
 
     def info(self):
@@ -191,25 +185,45 @@ class HamburgCKANHarvester(GovDataHarvester):
                 'description': 'A CKAN Harvester for Hamburg solving data compatibility problems.'}
 
     def amend_package(self, package):
+        # check if import is desired
+        if package['type'] == 'document':
+            # check if tag 'govdata' exists
+            if not [tag for tag in package['tags'] if tag.lower() == 'govdata']:
+                log.debug('Found invalid package')
+		return False
+            package['type'] = 'dokument'
+        # check if import is desired            
+        elif package['type'] == 'dokument':
+            # check if tag 'govdata' exists
+            if not [tag for tag in package['tags'] if tag.lower() == 'govdata']:
+                log.debug('Found invalid package')
+		return False
+        elif package['type'] == 'dataset':
+            package['type'] = 'datensatz'
 
-        # fix usage of hyphen, the schema group names use underscores
-        package['groups'] = [name.replace('-', '_') for name in package['groups']]
-
-        # add tag for better searchability
-        package['tags'].append(u'Hamburg')
-	for resource in package['resources']:
-		resource['format'] = resource['format'].lower()
+        extras = package['extras']
+        # fix groups
+        log.debug("Before: ")
+	log.debug(package['groups'])
+	package['groups'] = translate_groups(package['groups'], 'hamburg')
+        log.debug("After: ")
+	log.debug(package['groups'])
+	# set original portal
+        default_portal = 'http://suche.transparenz.hamburg.de/'
+        if not extras.get('metadata_original_portal'):
+            extras['metadata_original_portal'] = default_portal
 
         assert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
-        for resource in package['resources']:
-                resource['format'] = resource['format'].lower()
-
+        return True
+        
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         try:
-            self.amend_package(package_dict)
+            valid = self.amend_package(package_dict)
+            if not valid:
+                return  # drop package
         except ValueError, e:
             self._save_object_error(str(e), harvest_object)
             log.error('Hamburg: ' + str(e))
@@ -704,9 +718,8 @@ class DestatisZipHarvester(JSONZipBaseHarvester):
         #generate id based on OID namespace and package name, this makes sure,
         #that packages with the same name get the same id
 
-	package['name'] = package['name'] + "-test"
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'http://destatis.de/'
+        package['extras']['metadata_original_portal'] = 'http://www-genesis.destatis.de/'
 
         for resource in package['resources']:
                 resource['format'] = resource['format'].lower()
