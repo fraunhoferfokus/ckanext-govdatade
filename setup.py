@@ -34,10 +34,8 @@ setup(
     rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
     govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
     datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
-
     destatis_harvester=ckanext.govdatade.harvesters.ckanharvester:DestatisZipHarvester
     koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
-   
     bkg_harvester=ckanext.govdatade.harvesters.ckanharvester:BKGHarvester
     regionalstatistik_harvester=ckanext.govdatade.harvesters.ckanharvester:RegionalStatistikZipHarvester
 
