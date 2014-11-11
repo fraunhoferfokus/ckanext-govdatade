@@ -17,7 +17,8 @@ import json
 import logging
 import urllib2
 import uuid
-
+import ckanapi
+import datetime
 
 log = logging.getLogger(__name__)
 
@@ -107,11 +108,11 @@ class GovDataHarvester(GroupCKANHarvester):
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
-
+        
         local_datasets = iterate_local_datasets(context)
         filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
         local_dataset_names = map(lambda dataset: dataset['name'], filtered)
-
+        
         deprecated = set(local_dataset_names) - set(remote_dataset_names)
         log.info('Found %s deprecated datasets.' % len(deprecated))
 
@@ -120,6 +121,59 @@ class GovDataHarvester(GroupCKANHarvester):
                 local_dataset['state'] = 'deleted'
                 local_dataset['tags'].append({'name': 'deprecated'})
                 package_update(context, local_dataset)
+
+    def verify_transformer(self, remote_dataset):
+	""" Based on metadata_transformer, this method checks, if a dataset should be imported"""
+        registry = ckanapi.RemoteCKAN('http://localhost:80/ckan')
+	remote_dataset = json.loads(remote_dataset)
+	remote_dataset_extras = remote_dataset['extras']
+	if 'metadata_original_id' in remote_dataset_extras:
+	    orig_id = extras['metadata_original_id']
+            try:
+                local_search_result = registry.action.package_search(q='metadata_original_id:"'+orig_id+'"')
+		if local_search_result['count'] == 0:
+		    log.debug('Did not find this original id. Import accepted.') 
+		    return True
+		if local_search_result['count'] == 1:
+		    log.debug('Found duplicate entry')
+		    local_dataset = local_search_result['results'][0]
+		    local_dataset_extras = local_dataset['extras']
+		    if 'metadata_transformer' in [entry['key'] for entry in local_dataset_extras]:
+			log.debug('Found metadata_transformer')
+			local_transformer = None
+			for entry in local_datasets_extras:
+			    if entry['key'] == 'metadata_transformer':
+			    	value = entry['value']
+			   	local_transformer = value.lstrip('"').rstrip('"')
+			    	break
+
+			remote_transformer = remote_dataset_extras['metadata_transformer']
+			if remote_transformer == local_transformer or remote_transformer == 'harvester':
+			    return False
+			elif remote_transformer == 'author' and local_transformer == 'harvester':
+			    return True
+			else:
+			    return False
+		    else:
+		        if 'metadata_modified' in remote_dataset:
+			    dt_format = "%Y-%m-%dT%H:%M:%S.%f"
+			    remote_dt = datetime.datetime.strptime(remote_dataset['metadata_modified'], dt_format)
+			    local_dt = datetime.datetime.strptime(local_dataset['metadata_modified'], dt_format)
+			    if remote_dt < local_dt:
+   				log.debug('remote dataset precedes local dataset -> skipping.')
+				return False
+			    elif remote_dt == local_dt:
+				log.debug('remote dataset equals local dataset -> skipping.')
+				return False
+			    else:
+				log.debug('local dataset precedes remote dataset -> importing.')
+				# TODO do I have to delete other dataset?
+				return True
+            except Exception as e:
+                log.error(e)
+	else:
+	    log.debug('no metadata_original_id. Importing accepted.')
+	    return True
 
     def gather_stage(self, harvest_job):
         """Retrieve local datasets for synchronization."""
@@ -140,11 +194,15 @@ class GovDataHarvester(GroupCKANHarvester):
 
         context = self.build_context()
         remote_datasets = json.loads(content)
-        remote_dataset_names = map(lambda d: d['name'], remote_datasets)
+        #remote_dataset_names = map(lambda d: d['name'], remote_datasets)
+        #self.delete_deprecated_datasets(context, remote_dataset_names)
+	
+	return super(GovDataHarvester, self).gather_stage(harvest_job)
 
-        self.delete_deprecated_datasets(context, remote_dataset_names)
-        super(GovDataHarvester, self).gather_stage(harvest_job)
-
+    def import_stage(self, harvest_object):
+	to_import = self.verify_transformer(harvest_object.content)
+	if to_import:
+	    super(GovDataHarvester, self).import_stage(harvest_object)
 
 class RostockCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rostock solving data compatibility problems."""
@@ -234,6 +292,7 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
 class BerlinCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Berlin sovling data compatibility problems."""
+    PORTAL = 'http://datenregister.berlin.de/'
 
     def info(self):
         return {'name':        'berlin',

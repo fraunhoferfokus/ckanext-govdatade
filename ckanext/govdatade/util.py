@@ -39,9 +39,9 @@ def iterate_local_datasets(context, rows=1000):
     package_show = get_action('package_show')
 
     for dataset_name in package_list(context, None):
-        try:
+	try:
 	    dataset = package_show(context, {'id': dataset_name})
-            yield dataset
+	    yield dataset
         except NotFound:
             print dataset_name
             pass
