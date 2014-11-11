@@ -108,11 +108,11 @@ class GovDataHarvester(GroupCKANHarvester):
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
-        
+
         local_datasets = iterate_local_datasets(context)
         filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
         local_dataset_names = map(lambda dataset: dataset['name'], filtered)
-        
+
         deprecated = set(local_dataset_names) - set(remote_dataset_names)
         log.info('Found %s deprecated datasets.' % len(deprecated))
 
@@ -197,7 +197,7 @@ class GovDataHarvester(GroupCKANHarvester):
         #remote_dataset_names = map(lambda d: d['name'], remote_datasets)
         #self.delete_deprecated_datasets(context, remote_dataset_names)
 	
-	return super(GovDataHarvester, self).gather_stage(harvest_job)
+        return super(GovDataHarvester, self).gather_stage(harvest_job)
 
     def import_stage(self, harvest_object):
 	to_import = self.verify_transformer(harvest_object.content)
