@@ -7,3 +7,4 @@ jsonschema==2.3.0
 httpretty==0.7.1
 requests==2.2.1
 redis==2.8.0
+ckanapi==3.3
