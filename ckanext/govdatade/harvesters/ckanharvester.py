@@ -128,7 +128,7 @@ class GovDataHarvester(GroupCKANHarvester):
 	remote_dataset = json.loads(remote_dataset)
 	remote_dataset_extras = remote_dataset['extras']
 	if 'metadata_original_id' in remote_dataset_extras:
-	    orig_id = extras['metadata_original_id']
+	    orig_id = remote_dataset_extras['metadata_original_id']
             try:
                 local_search_result = registry.action.package_search(q='metadata_original_id:"'+orig_id+'"')
 		if local_search_result['count'] == 0:
@@ -141,18 +141,22 @@ class GovDataHarvester(GroupCKANHarvester):
 		    if 'metadata_transformer' in [entry['key'] for entry in local_dataset_extras]:
 			log.debug('Found metadata_transformer')
 			local_transformer = None
-			for entry in local_datasets_extras:
+			for entry in local_dataset_extras:
 			    if entry['key'] == 'metadata_transformer':
 			    	value = entry['value']
 			   	local_transformer = value.lstrip('"').rstrip('"')
-			    	break
+			    	log.debug('Found local metadata transformer')
+				break
 
 			remote_transformer = remote_dataset_extras['metadata_transformer']
 			if remote_transformer == local_transformer or remote_transformer == 'harvester':
+			    log.debug('Remote metadata transformer equals local transformer -> skipping')
 			    return False
 			elif remote_transformer == 'author' and local_transformer == 'harvester':
+			    log.debug('Remote metadata transformer equals author and local equals harvester -> importing.')
 			    return True
 			else:
+			    log.debug('unknown value for remote metadata_transformer -> skipping.')
 			    return False
 		    else:
 		        if 'metadata_modified' in remote_dataset:
@@ -169,6 +173,9 @@ class GovDataHarvester(GroupCKANHarvester):
 				log.debug('local dataset precedes remote dataset -> importing.')
 				# TODO do I have to delete other dataset?
 				return True
+			else:
+			    log.debug('Found duplicate entry but remote dataset does not contain metadata_modified -> skipping.')
+			    return False
             except Exception as e:
                 log.error(e)
 	else:
@@ -1035,7 +1042,6 @@ class RegionalStatistikZipHarvester(JSONZipBaseHarvester):
 		#generate id based on OID namespace and package name, this makes sure,
 		#that packages with the same name get the same id
 		package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-		package['name'] = package['name']+'rre'
 		package['extras']['metadata_original_portal'] = 'https://www.regionalstatistik.de/'
 		for resource in package['resources']:
 			resource['format'] = resource['format'].lower()
