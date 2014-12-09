@@ -19,6 +19,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(dataset)
@@ -28,6 +29,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None,
                               'sector':                   None}}
 
@@ -38,6 +40,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None,
                               'sector':                   'privat'}}
 
@@ -48,6 +51,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None,
                               'sector':                   'andere'}}
 
@@ -62,6 +66,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         package = {'type': None,
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(package)
@@ -71,6 +76,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         package = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(package)
@@ -80,6 +86,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         package = {'type': 'dokument',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(package)
@@ -89,6 +96,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         package = {'type': 'app',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(package)
@@ -98,6 +106,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         package = {'type': 'garbage',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(package)
@@ -112,6 +121,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {}}
 
         valid = harvester.amend_package(dataset)
@@ -122,6 +132,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': None}}
 
         valid = harvester.amend_package(dataset)
@@ -132,6 +143,7 @@ class BerlinHarvesterTest(unittest.TestCase):
         dataset = {'type': 'datensatz',
                    'groups': [],
                    'license_id': None,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'extras': {'metadata_original_portal': 'www.example.com'}}
 
         valid = harvester.amend_package(dataset)
@@ -168,6 +180,7 @@ class BerlinHarvesterTest(unittest.TestCase):
                    'ratings_average': None,
                    'extras': {},
                    'ratings_count': 0,
+                   'resources': [{'format':'CSV', 'url': 'http://travis-ci.org'}],
                    'revision_id': '411b25f9-1b8f-4f2a-90ae-05d3e8ff8d33'}
 
         harvester = BerlinCKANHarvester()
@@ -249,7 +262,7 @@ class MoersHarvesterTest(unittest.TestCase):
         self.assertEqual(package['extras']['spatial-text'],
                          '05 1 70 024 Moers')
 
-        self.assertEqual(package['resources'][0]['format'], 'JSON')
+        self.assertEqual(package['resources'][0]['format'], 'json')
 
 
 class RLPHarvesterTest(unittest.TestCase):
