@@ -850,7 +850,6 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         # a descriptive name, but no description. Hence, it is copied if unset.
         for resource in package_dict['resources']:
             description = resource['description'].lower()
-	    resource['format'] = resource['format'].lower()
             name = resource['name']
 
             name_valid = name and not name.isspace()
@@ -860,7 +859,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
             if description_invalid or (type_only and name_valid):
                 resource['description'] = resource['name']
 
-        for resource in package['resources']:
+        for resource in package_dict['resources']:
                 resource['format'] = resource['format'].lower()
 
         package_dict['extras']['metadata_original_portal'] = portal
