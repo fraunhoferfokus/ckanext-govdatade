@@ -9,7 +9,7 @@ setup(
 	description="GovData.de specific CKAN extension",
 	long_description="""\
 	""",
-	classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+	classifiers=[],  # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
 	keywords='',
 	author='Fraunhofer FOKUS',
 	author_email='ogdd-harvesting@fokus.fraunhofer.de',
@@ -25,19 +25,19 @@ setup(
     entry_points=\
     """
     [ckan.plugins]
-    bayern_harvester=ckanext.govdatade.harvesters.ckanharvester:BayernCKANHarvester
-    bremen_harvester=ckanext.govdatade.harvesters.ckanharvester:BremenCKANHarvester
     hamburg_harvester=ckanext.govdatade.harvesters.ckanharvester:HamburgCKANHarvester
     rlp_harvester=ckanext.govdatade.harvesters.ckanharvester:RLPCKANHarvester
     berlin_harvester=ckanext.govdatade.harvesters.ckanharvester:BerlinCKANHarvester
-    moers_harvester=ckanext.govdatade.harvesters.ckanharvester:MoersCKANHarvester
-    rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
-    govapps_harvester=ckanext.govdatade.harvesters.ckanharvester:GovAppsHarvester
     datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
-    destatis_harvester=ckanext.govdatade.harvesters.ckanharvester:DestatisZipHarvester
     koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
-    bkg_harvester=ckanext.govdatade.harvesters.ckanharvester:BKGHarvester
-    regionalstatistik_harvester=ckanext.govdatade.harvesters.ckanharvester:RegionalStatistikZipHarvester
+    rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
+    bayern_harvester=ckanext.govdatade.harvesters.jsonharvester:BayernCKANHarvester
+    bremen_harvester=ckanext.govdatade.harvesters.jsonharvester:BremenCKANHarvester
+    moers_harvester=ckanext.govdatade.harvesters.jsonharvester:MoersCKANHarvester
+    govapps_harvester=ckanext.govdatade.harvesters.jsonharvester:GovAppsHarvester
+    bkg_harvester=ckanext.govdatade.harvesters.jsonharvester:BKGHarvester
+    destatis_harvester=ckanext.govdatade.harvesters.jsonharvester:DestatisZipHarvester
+    regionalstatistik_harvester=ckanext.govdatade.harvesters.jsonharvester:RegionalStatistikZipHarvester
 
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
