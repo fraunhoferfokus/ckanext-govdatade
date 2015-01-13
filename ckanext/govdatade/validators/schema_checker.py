@@ -43,6 +43,13 @@ class SchemaChecker:
                 field_path_message = [path, error.message]
                 broken_rules.append(field_path_message)
 
+        dataset_groups = dataset['groups']
+        
+        if (len(dataset_groups) >= 4):
+            path = "unknown path"
+            field_path_message = [path, "WARNING: to many groups set"]
+            broken_rules.append(field_path_message)
+
         record['schema'] = broken_rules
         self.redis_client.set(dataset_id, record)
 
