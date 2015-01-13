@@ -46,8 +46,8 @@ class SchemaChecker:
         dataset_groups = dataset['groups']
         
         if (len(dataset_groups) >= 4):
-            path = "unknown path"
-            field_path_message = [path, "WARNING: to many groups set"]
+            path = "groups"
+            field_path_message = [path, "WARNING: too many groups set"]
             broken_rules.append(field_path_message)
 
         record['schema'] = broken_rules
