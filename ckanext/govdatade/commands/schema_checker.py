@@ -123,6 +123,23 @@ class SchemaChecker(CkanCommand):
             general = {'num_datasets': num_datasets}
             validator.redis_client.set('general', general)
 
+        elif len(self.args) == 2 and self.args[0] == 'specific':
+
+            context = {'model':       model,
+                       'session':     model.Session,
+                       'ignore_auth': True}
+
+            validator = schema_checker.SchemaChecker()
+
+            num_datasets = 1
+            dataset = self.args[1]
+            print 'Processing dataset %s' % dataset
+            normalize_action_dataset(dataset)
+            validator.process_record(dataset)
+            
+            general = {'num_datasets': num_datasets}
+            validator.redis_client.set('general', general)
+
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]
             ckan = ckanclient.CkanClient(base_location=endpoint)
