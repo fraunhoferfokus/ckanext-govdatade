@@ -37,6 +37,7 @@ setup(
     govapps_harvester=ckanext.govdatade.harvesters.jsonharvester:GovAppsHarvester
     bkg_harvester=ckanext.govdatade.harvesters.jsonharvester:BKGHarvester
     destatis_harvester=ckanext.govdatade.harvesters.jsonharvester:DestatisZipHarvester
+    destatis2_harvester=ckanext.govdatade.harvesters.jsonharvester:SecondDestatisZipHarvester
     regionalstatistik_harvester=ckanext.govdatade.harvesters.jsonharvester:RegionalStatistikZipHarvester
 
     [paste.paster_command]
