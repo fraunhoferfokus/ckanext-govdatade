@@ -4,6 +4,7 @@
 from ckan import model
 from ckan.model import Session
 from ckan.lib.cli import CkanCommand
+from ckan.logic import get_action, NotFound
 from ckan.logic.schema import default_package_schema
 
 from ckanext.govdatade import CONFIG
@@ -128,11 +129,14 @@ class SchemaChecker(CkanCommand):
             context = {'model':       model,
                        'session':     model.Session,
                        'ignore_auth': True}
-
+            
+            package_show = get_action('package_show')
             validator = schema_checker.SchemaChecker()
 
             num_datasets = 1
-            dataset = self.args[1]
+            dataset_name = self.args[1]
+            dataset =  package_show(context, {'id': dataset_name})
+                   
             print 'Processing dataset %s' % dataset
             normalize_action_dataset(dataset)
             validator.process_record(dataset)
