@@ -73,7 +73,7 @@ def normalize_extras(source):
 
 
 def copy_report_vendor_files():
-    target_dir = CONFIG.get('validators', 'report_dir')
+    target_dir = "/var/lib/ckan/one/static/reports/" #CONFIG.get('validators', 'report_dir')
     target_dir = os.path.join(target_dir, 'assets')
     target_dir = os.path.abspath(target_dir)
 
@@ -85,7 +85,7 @@ def copy_report_vendor_files():
 
 
 def copy_report_asset_files():
-    target_dir = CONFIG.get('validators', 'report_dir')
+    target_dir = "/var/lib/ckan/one/static/reports/" #CONFIG.get('validators', 'report_dir')
     target_dir = os.path.join(target_dir, 'assets')
     target_dir = os.path.abspath(target_dir)
 
