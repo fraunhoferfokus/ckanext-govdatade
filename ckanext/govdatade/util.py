@@ -39,9 +39,9 @@ def iterate_local_datasets(context, rows=1000):
     package_show = get_action('package_show')
 
     for dataset_name in package_list(context, None):
-	try:
-	    dataset = package_show(context, {'id': dataset_name})
-	    yield dataset
+        try:
+            dataset = package_show(context, {'id': dataset_name})
+            yield dataset
         except NotFound:
             print dataset_name
             pass
@@ -151,12 +151,11 @@ def generate_schema_checker_data(data):
         dataset_id = record['id']
         portal = record['metadata_original_portal']
 
-
         if 'schema' not in record or not record['schema']:
             continue
 
         portals[portal] += 1
-        
+
         if record['schema']:
             broken += 1
 

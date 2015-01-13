@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 from ckanext.govdatade.harvesters.ckanharvester import BerlinCKANHarvester
-from ckanext.govdatade.harvesters.ckanharvester import MoersCKANHarvester
+from ckanext.govdatade.harvesters.jsonharvester import MoersCKANHarvester
 from ckanext.govdatade.harvesters.ckanharvester import RLPCKANHarvester
 
 import os
