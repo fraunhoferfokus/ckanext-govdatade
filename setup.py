@@ -31,6 +31,7 @@ setup(
     datahub_harvester=ckanext.govdatade.harvesters.ckanharvester:DatahubCKANHarvester
     koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
     rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
+    bonn_harvester=ckanext.govdatade.harvesters.ckanharvester:BonnCKANHarvester
     bayern_harvester=ckanext.govdatade.harvesters.jsonharvester:BayernCKANHarvester
     bremen_harvester=ckanext.govdatade.harvesters.jsonharvester:BremenCKANHarvester
     moers_harvester=ckanext.govdatade.harvesters.jsonharvester:MoersCKANHarvester

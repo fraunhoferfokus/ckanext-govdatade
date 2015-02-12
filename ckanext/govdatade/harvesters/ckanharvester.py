@@ -501,6 +501,8 @@ class KoelnCKANHarvester(GroupCKANHarvester):
     which will be loaded to CKAN.
     '''
 
+    city = 'Koeln'
+
     def info(self):
         return {'name': 'koeln',
                 'title': 'Koeln CKAN Harvester',
@@ -510,7 +512,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
     def gather_stage(self, harvest_job):
         """Retrieve datasets"""
 
-        log.debug('In KoelnCKANHarvester gather_stage (%s)' % harvest_job.source.url)
+        log.debug('In ' + self.city + 'CKANHarvester gather_stage (%s)' % harvest_job.source.url)
         package_ids = []
         self._set_config(None)
 
@@ -539,7 +541,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
 
     def fetch_stage(self, harvest_object):
-        log.debug('In KoelnCKANHarvester fetch_stage')
+        log.debug('In ' + self.city +'CKANHarvester fetch_stage')
         self._set_config(None)
 
         # Get contents
@@ -567,7 +569,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
             self.amend_package(package_dict)
         except ValueError, e:
             self._save_object_error(str(e), harvest_object)
-            log.error('Koeln: ' + str(e))
+            log.error(self.city +': ' + str(e))
             return
 
         harvest_object.content = json.dumps(package_dict)
@@ -606,7 +608,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
         if 'Politik und Wahlen' in package['groups']:
             package['groups'].append(u'politik_wahlen')
-            package['groups'].append('Politik und Wahlen')
+            package['groups'].remove('Politik und Wahlen')
 
         if 'Soziales' in package['groups']:
             package['groups'].append(u'soziales')
@@ -648,3 +650,39 @@ class KoelnCKANHarvester(GroupCKANHarvester):
             log.debug('Encoding Error ' + str(e))
 
         package['name'] = name
+
+
+class BonnCKANHarvester(KoelnCKANHarvester):
+    '''
+    A CKAN Harvester for Bonn.
+    '''
+
+    city = 'Bonn'
+
+    def info(self):
+        return {'name': 'bonn',
+                'title': 'Bonn CKAN Harvester',
+                'description': 'A CKAN Harvester for Bonn.'}
+
+
+    def amend_package(self, package):
+        super(BonnCKANHarvester, self).amend_package(package)
+
+        if u'Öffentliche Verwaltung' in package['groups']:
+            package['groups'].append('verwaltung')
+	    package['groups'].remove(u'Öffentliche Verwaltung')
+	if u'Haushalt und Steuern' in package['groups']:
+            package['groups'].append('politik_wahlen')
+            package['groups'].remove('Haushalt und Steuern')
+	if u'Geographie' in package['groups']:
+            package['groups'].append('geo')
+            package['groups'].remove(u'Geographie')
+            package['groups'].remove(u'Geologie und Geobasisdaten')
+	if u'Politik und Wahlen' in package['groups']:
+            package['groups'].append('politik_wahlen')
+	    package['groups'].remove(u'Politik und Wahlen')
+	if u'Bevölkerung' in package['groups']:
+	    package['groups'].append('bevoelkerung')
+	    package['groups'].remove(u'Bevölkerung')
+
+	package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
