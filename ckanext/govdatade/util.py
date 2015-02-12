@@ -177,6 +177,7 @@ def generate_general_data(data):
 
 
 def amend_portal(portal):
+    portal = str(portal)
     portal = portal.replace(':', '-')
     portal = portal.replace('/', '-')
     portal = portal.replace('.', '-')

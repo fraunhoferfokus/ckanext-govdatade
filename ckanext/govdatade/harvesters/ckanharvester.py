@@ -686,3 +686,4 @@ class BonnCKANHarvester(KoelnCKANHarvester):
 	    package['groups'].remove(u'Bevölkerung')
 
 	package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
+	package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
