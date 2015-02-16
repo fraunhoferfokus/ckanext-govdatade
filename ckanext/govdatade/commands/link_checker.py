@@ -80,7 +80,7 @@ class LinkChecker(CkanCommand):
 
     def command(self):
         super(LinkChecker,self)._load_config()
-	context = self.create_context()
+        context = self.create_context()
         if len(self.args) > 0:
             subcommand = self.args[0]
             if subcommand == 'remote':

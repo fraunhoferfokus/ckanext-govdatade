@@ -39,19 +39,19 @@ class LinkChecker:
                     delete = delete or self.record_failure(dataset, url,
                                                            code, portal)
             except requests.exceptions.Timeout:
-                delete = delete or self.record_failure(dataset_id, url,
+                delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
             except requests.exceptions.TooManyRedirects:
-                delete = delete or self.record_failure(dataset_id, url,
+                delete = delete or self.record_failure(dataset, url,
                                                        'Redirect Loop', portal)
             except requests.exceptions.RequestException as e:
                 if e is None:
-                    delete = delete or self.record_failure(dataset_id, url,
+                    delete = delete or self.record_failure(dataset, url,
                                                            'Unknown')
                 else:
-                    delete = delete or self.record_failure(dataset_id, url, e)
+                    delete = delete or self.record_failure(dataset, url, e)
             except socket.timeout:
-                delete = delete or self.record_failure(dataset_id, url,
+                delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
         
         return delete
