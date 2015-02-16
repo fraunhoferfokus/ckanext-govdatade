@@ -114,37 +114,19 @@ def generate_link_checker_data(data, dataset_name):
     data['portals'] = defaultdict(int)
     data['entries'] = defaultdict(list)
 
-   
-    if (dataset_name): 
-        dataset = redis.get(dataset_name)
-        print 'Checking dataset %s' % dataset
-        if 'urls' not in dataset:
-                print 'PRINT13001: urls not in dataset' 
-                continue
-        
-        for url, entry in dataset['urls'].iteritems():
-                if type(entry['status']) == int:
-                    entry['status'] = 'HTTP %s' % entry['status']
-                    print 'PRINT 13002:' % entry['status']
     
-        if 'metadata_original_portal' in dataset:  # legacy
-                portal = dataset['metadata_original_portal']
-                data['portals'][portal] += 1
-                data['entries'][portal].append(dataset)           
-        
-    else:
-        for record in checker.get_records():
-            if 'urls' not in record:
-                continue
+    for record in checker.get_records():
+        if 'urls' not in record:
+            continue
     
-            for url, entry in record['urls'].iteritems():
-                if type(entry['status']) == int:
-                    entry['status'] = 'HTTP %s' % entry['status']
+        for url, entry in record['urls'].iteritems():
+            if type(entry['status']) == int:
+                entry['status'] = 'HTTP %s' % entry['status']
     
-            if 'metadata_original_portal' in record:  # legacy
-                portal = record['metadata_original_portal']
-                data['portals'][portal] += 1
-                data['entries'][portal].append(record)
+        if 'metadata_original_portal' in record:  # legacy
+            portal = record['metadata_original_portal']
+            data['portals'][portal] += 1
+            data['entries'][portal].append(record)
 
     lc_stats = data['linkchecker']
     lc_stats['broken'] = sum(data['portals'].values())

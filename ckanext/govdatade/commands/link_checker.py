@@ -71,8 +71,15 @@ class LinkChecker(CkanCommand):
         fd.write(rendered_template.encode('UTF-8'))
         fd.close()
 
-    def command(self):
+    def create_context(self):
+        return {'model':       model,
+                'session':     Session,
+                'user':        u'harvest',
+                'schema':      default_package_schema,
+                'validate':    False}
 
+    def command(self):
+        context = self.create_context()
         if len(self.args) > 0:
             subcommand = self.args[0]
             if subcommand == 'remote':
@@ -89,8 +96,6 @@ class LinkChecker(CkanCommand):
                 package_show = get_action('package_show')
                 validator = link_checker.LinkChecker()
 
-                num_datasets = 1
-                dataset_name = self.args[1]
                 dataset =  package_show(context, {'id': dataset_name})
                    
                 print 'Processing dataset %s' % dataset
