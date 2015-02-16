@@ -30,7 +30,9 @@ class LinkChecker:
         for resource in dataset['resources']:
             url = resource['url']
             try:
+                print url
                 code = self.validate(resource['url'])
+                print code
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:

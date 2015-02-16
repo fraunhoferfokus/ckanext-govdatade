@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+from ckan import model
+from ckan.model import Session
+from ckan.lib.cli import CkanCommand
+from ckan.logic import get_action, NotFound
+from ckan.logic.schema import default_package_schema
+from ckanext.govdatade.util import normalize_action_dataset
 
 from ckan.lib.cli import CkanCommand
 from ckanext.govdatade import CONFIG
@@ -40,9 +46,9 @@ class LinkChecker(CkanCommand):
         print num_urls
         print num_success
 
-    def generate_report(self):
+    def generate_report(self, dataset_name=None):
         data = {}
-        generate_link_checker_data(data)
+        generate_link_checker_data(data, dataset_name)
         self.write_report(self.render_template(data))
 
     def render_template(self, data):
@@ -72,4 +78,22 @@ class LinkChecker(CkanCommand):
             if subcommand == 'remote':
                 self.check_remote_host(self.args[1])
             elif subcommand == 'report':
-                self.generate_report()
+                self.generate_report()         
+            elif len(self.args) == 2 and self.args[0] == 'specific':
+                dataset_name = self.args[1] 
+
+                context = {'model':       model,
+                           'session':     model.Session,
+                           'ignore_auth': True}
+            
+                package_show = get_action('package_show')
+                validator = link_checker.LinkChecker()
+
+                num_datasets = 1
+                dataset_name = self.args[1]
+                dataset =  package_show(context, {'id': dataset_name})
+                   
+                print 'Processing dataset %s' % dataset
+                normalize_action_dataset(dataset)
+                validator.process_record(dataset)
+
