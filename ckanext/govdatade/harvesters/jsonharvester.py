@@ -316,7 +316,6 @@ class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
         file_content = StringIO.StringIO(content)
         archive = zipfile.ZipFile(file_content, "r")
         for name in archive.namelist():
-            print name
             if name.endswith(".json"):
 		package = json.loads(archive.read(name))
 		packages.append(package)
@@ -464,3 +463,22 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
             self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
                                     harvest_job)
             return None
+
+
+class SachsenZipHarvester(SecondDestatisZipHarvester):
+    def info(self):
+        return {'name': 'sachsen',
+                'title': 'Sachsen Harvester',
+                'description': 'A CKAN Harvester for Sachsen.'}
+
+    def amend_package(self, package):
+        # generate id based on OID namespace and package name, this makes sure,
+        # that packages with the same name get the same id
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        package['extras']['metadata_original_portal'] = 'http://www.statistik.sachsen.de/'
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+        self.amend_package(package)
+        harvest_object.content = json.dumps(package)
+        super(JSONZipBaseHarvester, self).import_stage(harvest_object)

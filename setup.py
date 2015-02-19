@@ -40,6 +40,7 @@ setup(
     destatis_harvester=ckanext.govdatade.harvesters.jsonharvester:DestatisZipHarvester
     destatis2_harvester=ckanext.govdatade.harvesters.jsonharvester:SecondDestatisZipHarvester
     regionalstatistik_harvester=ckanext.govdatade.harvesters.jsonharvester:RegionalStatistikZipHarvester
+    sachsen_harvester=ckanext.govdatade.harvesters.jsonharvester:SachsenZipHarvester
 
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
