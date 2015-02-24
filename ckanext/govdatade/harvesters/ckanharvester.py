@@ -141,16 +141,23 @@ class GovDataHarvester(GroupCKANHarvester):
                     if 'metadata_transformer' in [entry['key'] for entry in local_dataset_extras]:
                         log.debug('Found metadata_transformer')
                         local_transformer = None
+                        local_portal = None
                         for entry in local_dataset_extras:
                             if entry['key'] == 'metadata_transformer':
                                 value = entry['value']
                                 local_transformer = value.lstrip('"').rstrip('"')
                                 log.debug('Found local metadata transformer')
-                                break
+			    if entry['key'] == 'metadata_original_portal':
+				tmp_value = entry['value']
+				local_portal = tmp_value.lstrip('"').rstrip('"')
 
                         remote_transformer = remote_dataset_extras['metadata_transformer']
                         if remote_transformer == local_transformer or remote_transformer == 'harvester':
-                            log.debug('Remote metadata transformer equals local transformer -> skipping')
+                            #TODO this is temporary for gdi-de
+			    if local_portal == 'http://ims.geoportal.de/':
+				log.debug('Found geoportal, accept import.')
+				return True
+			    log.debug('Remote metadata transformer equals local transformer -> skipping')
                             return False
                         elif remote_transformer == 'author' and local_transformer == 'harvester':
                             log.debug(
