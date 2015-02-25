@@ -543,5 +543,5 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         
-        super(JSONDumpBaseCKANHarvester, self).import_stage(harvest_object)
+        super(BMBF_ZipHarvester, self).import_stage(harvest_object)
             
