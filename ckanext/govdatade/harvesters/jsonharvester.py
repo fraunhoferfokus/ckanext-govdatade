@@ -499,8 +499,8 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
     
-    def gather_stage(self, harvest_job):
-        self._set_config(harvest_job.source.config, 'bmbf-datenportal')
+    '''def gather_stage(self, harvest_job):
+        self._set_config(harvest_job.source.config)
         # Request all remote packages
         try:
             content = self._get_content(harvest_job.source.url)
@@ -535,7 +535,7 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
             return True
         else:
             return False      
-                 
+     '''            
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
         log.debug(package)
