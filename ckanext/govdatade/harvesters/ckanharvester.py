@@ -76,6 +76,7 @@ class GroupCKANHarvester(CKANHarvester):
         log.debug('super start verify'+ harvest_object.content)
         package_dict = json.loads(harvest_object.content)
         log.debug('ckanharvester78 '+harvest_object.id)
+        log.debug('packageDict: '+package_dict)
         delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
         log.debug('ckanharvester80 '+harvest_object.id)
