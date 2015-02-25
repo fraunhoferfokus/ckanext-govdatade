@@ -501,7 +501,6 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
     
     def gather_stage(self, harvest_job):
         self._set_config(harvest_job.source.config, 'bmbf-datenportal')
-        #self._set_config(harvest_job.source.config)
         # Request all remote packages
         try:
             content = self._get_content(harvest_job.source.url)
@@ -521,8 +520,7 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
 
         context = self.build_context()
         remote_dataset_names = map(lambda d: d['name'], packages)
-        self.delete_deprecated_datasets(context, remote_dataset_names)
-
+        #self.delete_deprecated_datasets(context, remote_dataset_names)
         if object_ids:
             return object_ids
         else:
@@ -532,10 +530,10 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
             
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
-
+        log.debug(package)
         self.amend_package(package)
 
         harvest_object.content = json.dumps(package)
         
-        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
+        super(JSONDumpBaseCKANHarvester, self).import_stage(harvest_object)
             
