@@ -75,16 +75,20 @@ class GroupCKANHarvester(CKANHarvester):
     def import_stage(self, harvest_object):
         log.debug('super start verify'+ harvest_object.content)
         package_dict = json.loads(harvest_object.content)
+        log.debug('ckanharvester78 '+harvest_object.id)
         delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
+        log.debug('ckanharvester80 '+harvest_object.id)
         if delete:
             package_dict['state'] = 'deleted'
         else:
             if 'deprecated' not in package_dict['tags']:
                 package_dict['state'] = 'active'
 
-        harvest_object.content = json.dumps(package_dict)
         log.debug('ckanharvester86 '+harvest_object.id)
+        log.debug('ckanharvester87 '+harvest_object.content)
+        harvest_object.content = json.dumps(package_dict)
+        log.debug('ckanharvester88 '+harvest_object.id)
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
 
