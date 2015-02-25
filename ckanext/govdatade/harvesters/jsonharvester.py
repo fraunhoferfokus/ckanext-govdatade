@@ -527,7 +527,15 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
             self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
                                     harvest_job)
             return None    
-            
+    
+    def fetch_stage(self, harvest_object):
+        self._set_config(harvest_object.job.source.config, 'bmbf-datenportal')
+
+        if harvest_object.content:
+            return True
+        else:
+            return False      
+                 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
         log.debug(package)
