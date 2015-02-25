@@ -41,7 +41,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
 
         context = self.build_context()
         remote_dataset_names = map(lambda d: d['name'], packages)
-        self.delete_deprecated_datasets(context, remote_dataset_names)
+        #self.delete_deprecated_datasets(context, remote_dataset_names)
 
         if object_ids:
             return object_ids
