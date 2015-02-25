@@ -493,7 +493,8 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
         
         
     def amend_package(self, package):
-        
+        # TODO insert me again!
+        #package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['extras']['metadata_original_portal'] = 'http://www.datenportal.bmbf.de/'
         
         for resource in package['resources']:
