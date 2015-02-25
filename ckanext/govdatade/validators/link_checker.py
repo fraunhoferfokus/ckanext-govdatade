@@ -30,9 +30,9 @@ class LinkChecker:
         for resource in dataset['resources']:
             url = resource['url']
             try:
-                print url
+                log.debug(url)
                 code = self.validate(resource['url'])
-                print code
+                log.debug(code)
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
@@ -47,9 +47,9 @@ class LinkChecker:
             except requests.exceptions.RequestException as e:
                 if e is None:
                     delete = delete or self.record_failure(dataset, url,
-                                                           'Unknown')
+                                                           'Unknown', portal)
                 else:
-                    delete = delete or self.record_failure(dataset, url, e)
+                    delete = delete or self.record_failure(dataset, url, str(e), portal)
             except socket.timeout:
                 delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
@@ -81,10 +81,10 @@ class LinkChecker:
 
         dataset_id = dataset['id']
         dataset_name = dataset['name']
-
         delete = False
-        record = eval(unicode(self.redis_client.get(dataset_id)))
-
+        log.debug(self.redis_client.get(dataset_id))
+        record = unicode(self.redis_client.get(dataset_id))
+	record = eval(record)
         initial_url_record = {'status':  status,
                               'date':    date.strftime("%Y-%m-%d"),
                               'strikes': 1}
