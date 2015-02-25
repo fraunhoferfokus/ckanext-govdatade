@@ -482,3 +482,33 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
         self.amend_package(package)
         harvest_object.content = json.dumps(package)
         super(JSONZipBaseHarvester, self).import_stage(harvest_object)
+        
+class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
+    PORTAL = 'http://www.datenportal.bmbf.de/'
+
+    def info(self):
+        return {'name': 'bmbf',
+                'title': 'BMBF JSON zip Harvester',
+                'description': 'A JSON zip Harvester for BMBF.'}
+        
+        
+    def amend_package(self, package):
+        
+        package['extras']['metadata_original_portal'] = 'http://www.datenportal.bmbf.de/'
+        
+        for resource in package['resources']:
+            resource['format'] = resource['format'].lower()
+    
+    def gather_stage(self, harvest_job):
+        self._set_config(harvest_job.source.config, 'bmbf-datenportal')
+            
+            
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        
+        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
+            
