@@ -501,7 +501,34 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
     
     def gather_stage(self, harvest_job):
         self._set_config(harvest_job.source.config, 'bmbf-datenportal')
-            
+        #self._set_config(harvest_job.source.config)
+        # Request all remote packages
+        try:
+            content = self._get_content(harvest_job.source.url)
+        except Exception, e:
+            self._save_gather_error('Unable to get content for URL: %s: %s' % (harvest_job.source.url, str(e)),
+                                    harvest_job)
+            return None
+
+        object_ids = []
+
+        packages = json.loads(content)
+        for package in packages:
+            obj = HarvestObject(guid=package['name'], job=harvest_job)
+            obj.content = json.dumps(package)
+            obj.save()
+            object_ids.append(obj.id)
+
+        context = self.build_context()
+        remote_dataset_names = map(lambda d: d['name'], packages)
+        self.delete_deprecated_datasets(context, remote_dataset_names)
+
+        if object_ids:
+            return object_ids
+        else:
+            self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
+                                    harvest_job)
+            return None    
             
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
