@@ -73,6 +73,7 @@ class GroupCKANHarvester(CKANHarvester):
             self.config['user'] = user
             
     def import_stage(self, harvest_object):
+        log.debug('super start verify'+ harvest_object.content)
         package_dict = json.loads(harvest_object.content)
         delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
@@ -219,6 +220,7 @@ class GovDataHarvester(GroupCKANHarvester):
         return super(GovDataHarvester, self).gather_stage(harvest_job)
 
     def import_stage(self, harvest_object):
+        log.debug('start verify '+harvest_object.content)
         to_import = self.verify_transformer(harvest_object.content)
         if to_import:
             super(GovDataHarvester, self).import_stage(harvest_object)
