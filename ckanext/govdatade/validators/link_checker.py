@@ -21,12 +21,15 @@ class LinkChecker:
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
+        log.debug(dataset_id)
         delete = False
+        log.debug('after delete')
+        
         portal = None
         if 'extras' in dataset and \
            'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
-	
+	    log.debug('before for loop')
         for resource in dataset['resources']:
             url = resource['url']
             try:
