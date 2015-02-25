@@ -537,6 +537,7 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
             return False      
      '''            
     def import_stage(self, harvest_object):
+        
         package = json.loads(harvest_object.content)
         log.debug(package)
         self.amend_package(package)
@@ -544,4 +545,3 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
         harvest_object.content = json.dumps(package)
         
         super(BMBF_ZipHarvester, self).import_stage(harvest_object)
-            

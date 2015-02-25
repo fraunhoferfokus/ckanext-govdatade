@@ -84,6 +84,7 @@ class GroupCKANHarvester(CKANHarvester):
                 package_dict['state'] = 'active'
 
         harvest_object.content = json.dumps(package_dict)
+        log.debug('ckanharvester86 '+harvest_object.id)
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
 
@@ -223,6 +224,7 @@ class GovDataHarvester(GroupCKANHarvester):
         log.debug('start verify '+harvest_object.content)
         to_import = self.verify_transformer(harvest_object.content)
         if to_import:
+            log.debug('govdataharvester227 '+harvest_object.id)
             super(GovDataHarvester, self).import_stage(harvest_object)
 
 
