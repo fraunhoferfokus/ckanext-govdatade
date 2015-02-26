@@ -486,63 +486,42 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
 class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
     PORTAL = 'http://www.datenportal.bmbf.de/'
 
+
+
+
     def info(self):
         return {'name': 'bmbf',
                 'title': 'BMBF JSON zip Harvester',
                 'description': 'A JSON zip Harvester for BMBF.'}
         
+     
+     
+    def _set_config(self, config_str):
+        if config_str:
+            self.config = json.loads(config_str)
+        else:
+            self.config = {}
+        self.api_version = 1
+        self.config['api_version'] = 1
+        self.config['force_all'] = True
+        self.config['remote_groups'] = 'only_local'
+        self.config['user'] = 'bmbf-datenportal'
+        
         
     def amend_package(self, package):
-        # TODO insert me again!
-        #package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['extras']['metadata_original_portal'] = 'http://www.datenportal.bmbf.de/'
         
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
-    
-    '''def gather_stage(self, harvest_job):
-        self._set_config(harvest_job.source.config)
-        # Request all remote packages
-        try:
-            content = self._get_content(harvest_job.source.url)
-        except Exception, e:
-            self._save_gather_error('Unable to get content for URL: %s: %s' % (harvest_job.source.url, str(e)),
-                                    harvest_job)
-            return None
-
-        object_ids = []
-
-        packages = json.loads(content)
-        for package in packages:
-            obj = HarvestObject(guid=package['name'], job=harvest_job)
-            obj.content = json.dumps(package)
-            obj.save()
-            object_ids.append(obj.id)
-
-        context = self.build_context()
-        remote_dataset_names = map(lambda d: d['name'], packages)
-        #self.delete_deprecated_datasets(context, remote_dataset_names)
-        if object_ids:
-            return object_ids
-        else:
-            self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
-                                    harvest_job)
-            return None    
-    
-    def fetch_stage(self, harvest_object):
-        self._set_config(harvest_object.job.source.config, 'bmbf-datenportal')
-
-        if harvest_object.content:
-            return True
-        else:
-            return False      
-     '''            
+             
+                
     def import_stage(self, harvest_object):
         
         package = json.loads(harvest_object.content)
-        log.debug(package)
+
         self.amend_package(package)
 
         harvest_object.content = json.dumps(package)
-        
         super(BMBF_ZipHarvester, self).import_stage(harvest_object)
