@@ -13,31 +13,24 @@ class LinkChecker:
     TIMEOUT = 30.0
 
     def __init__(self, db='production'):
-        log.debug('hier passiert init')
         redis_db_dict = {'production': 0, 'test': 1}
         database = redis_db_dict[db]
         self.redis_client = redis.StrictRedis(host='localhost',
                                               port=6379,
                                               db=database)
-        log.debug('hier passiert init ende')
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
-        log.debug(dataset_id)
         delete = False
-        log.debug('after delete')
         
         portal = None
         if 'extras' in dataset and \
            'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
-	    log.debug('before for loop')
         for resource in dataset['resources']:
             url = resource['url']
             try:
-                log.debug(url)
                 code = self.validate(resource['url'])
-                log.debug(code)
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
