@@ -41,7 +41,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
 
         context = self.build_context()
         remote_dataset_names = map(lambda d: d['name'], packages)
-        self.delete_deprecated_datasets(context, remote_dataset_names)
+        #self.delete_deprecated_datasets(context, remote_dataset_names)
 
         if object_ids:
             return object_ids
@@ -486,29 +486,42 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
 class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
     PORTAL = 'http://www.datenportal.bmbf.de/'
 
+
+
+
     def info(self):
         return {'name': 'bmbf',
                 'title': 'BMBF JSON zip Harvester',
                 'description': 'A JSON zip Harvester for BMBF.'}
         
+     
+     
+    def _set_config(self, config_str):
+        if config_str:
+            self.config = json.loads(config_str)
+        else:
+            self.config = {}
+        self.api_version = 1
+        self.config['api_version'] = 1
+        self.config['force_all'] = True
+        self.config['remote_groups'] = 'only_local'
+        self.config['user'] = 'bmbf-datenportal'
+        
         
     def amend_package(self, package):
         
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['extras']['metadata_original_portal'] = 'http://www.datenportal.bmbf.de/'
         
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
-    
-    def gather_stage(self, harvest_job):
-        self._set_config(harvest_job.source.config, 'bmbf-datenportal')
-            
-            
+             
+                
     def import_stage(self, harvest_object):
+        
         package = json.loads(harvest_object.content)
 
         self.amend_package(package)
 
         harvest_object.content = json.dumps(package)
-        
-        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
-            
+        super(BMBF_ZipHarvester, self).import_stage(harvest_object)

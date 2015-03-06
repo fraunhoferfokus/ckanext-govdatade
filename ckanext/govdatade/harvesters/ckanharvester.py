@@ -57,7 +57,7 @@ class GroupCKANHarvester(CKANHarvester):
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
 
-    def _set_config(self, config_str, user=None):
+    def _set_config(self, config_str):
         """Enforce API version 1 for enabling group import"""
         if config_str:
             self.config = json.loads(config_str)
@@ -68,21 +68,21 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
         self.config['user'] = 'harvest'
-        
-        if(user):
-            self.config['user'] = user
-            
+                    
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
+        
         delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
+        
         if delete:
             package_dict['state'] = 'deleted'
         else:
             if 'deprecated' not in package_dict['tags']:
                 package_dict['state'] = 'active'
-
+                
         harvest_object.content = json.dumps(package_dict)
+
         super(GroupCKANHarvester, self).import_stage(harvest_object)
 
 
