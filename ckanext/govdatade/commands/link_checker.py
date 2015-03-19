@@ -46,7 +46,7 @@ class LinkChecker(CkanCommand):
         print num_urls
         print num_success
 
-    def generate_report(self, dataset_name=None):
+    def generate_report(self):
         data = {}
         generate_link_checker_data(data)
         self.write_report(self.render_template(data))

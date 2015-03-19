@@ -29,6 +29,8 @@ class LinkChecker:
             portal = dataset['extras']['metadata_original_portal']
         for resource in dataset['resources']:
             url = resource['url']
+            url = url.replace('sequenz=tabelleErgebnis','sequenz=tabellen')
+            url = url.replace('sequenz=tabelleDownload','sequenz=tabellen')
             try:
                 code = self.validate(resource['url'])
                 if self.is_available(code):

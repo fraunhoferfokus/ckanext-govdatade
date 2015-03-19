@@ -476,6 +476,10 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['extras']['metadata_original_portal'] = 'http://www.statistik.sachsen.de/'
+        '''for resource in package['resources']:
+            resource['url'] = resource['url'].replace('tabelleErgebnis','tabellen')
+            resource['url'] = resource['url'].replace('tabelleDownload','tabellen')'''
+            
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
