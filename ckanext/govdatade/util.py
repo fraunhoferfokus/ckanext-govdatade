@@ -105,7 +105,7 @@ def is_valid(source):
         return False
 
 
-def generate_link_checker_data(data, dataset_name):
+def generate_link_checker_data(data):
     checker = link_checker.LinkChecker()
     redis = checker.redis_client
     num_metadata = eval(redis.get('general'))['num_datasets']

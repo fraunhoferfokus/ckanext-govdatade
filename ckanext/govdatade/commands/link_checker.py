@@ -48,7 +48,7 @@ class LinkChecker(CkanCommand):
 
     def generate_report(self, dataset_name=None):
         data = {}
-        generate_link_checker_data(data, dataset_name)
+        generate_link_checker_data(data)
         self.write_report(self.render_template(data))
 
     def render_template(self, data):

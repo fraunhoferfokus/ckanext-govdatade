@@ -21,14 +21,28 @@ class SchemaChecker:
         dataset_id = dataset['id']
         record = self.redis_client.get(dataset_id)
 
+	try:
+	   record = eval(record)
+	except:
+	   print "EVAL_ERROR"
+
+	print "RECORD: ", record
+
         portal = dataset['extras'].get('metadata_original_portal', 'null')
 
         if record is None:
             record = {'id': dataset_id, 'metadata_original_portal': portal}
         else:
-            record = eval(record)
-
-        record['schema'] = []
+	    try:                  
+               record = eval(record)
+            except:
+               print "Record_error: ", record
+	       print "rec_Schema___:", record['schema']
+        try:
+           record['schema'] = []
+        except:
+           print "TypeError"
+        
         broken_rules = []
 
         errors = Draft3Validator(self.schema).iter_errors(dataset)
@@ -50,7 +64,13 @@ class SchemaChecker:
             field_path_message = [path, "WARNING: too many groups set"]
             broken_rules.append(field_path_message)
 
-        record['schema'] = broken_rules
+	print "broken_rules: ", broken_rules
+
+	try:
+           record['schema'] = broken_rules
+	except:
+	   print "broken_rules_Error: ", broken_rules
+
         self.redis_client.set(dataset_id, record)
 
         return not broken_rules
@@ -60,6 +80,9 @@ class SchemaChecker:
         for dataset_id in self.redis_client.keys('*'):
             if dataset_id == 'general':
                 continue
-            result.append(eval(self.redis_client.get(dataset_id)))
+	    try:
+               result.append(eval(self.redis_client.get(dataset_id)))
+	    except:
+	       print "DS_errer_schema: ", dataset_id
 
         return result

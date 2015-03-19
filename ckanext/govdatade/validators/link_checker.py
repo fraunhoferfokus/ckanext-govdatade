@@ -82,7 +82,10 @@ class LinkChecker:
         delete = False
         log.debug(self.redis_client.get(dataset_id))
         record = unicode(self.redis_client.get(dataset_id))
-	record = eval(record)
+        try:     
+           record = eval(record)
+        except:
+               print "Record_error: ", record    
         initial_url_record = {'status':  status,
                               'date':    date.strftime("%Y-%m-%d"),
                               'strikes': 1}
@@ -123,7 +126,10 @@ class LinkChecker:
     def record_success(self, dataset_id, url):
         record = self.redis_client.get(dataset_id)
         if record is not None:
-            record = eval(unicode(record))
+            try:
+               record = eval(unicode(record))
+            except:
+               print "ConnError"
             _type= type(record) is dict
             # Remove URL entry due to working URL
             if record.get('urls'):
@@ -138,8 +144,12 @@ class LinkChecker:
     def get_records(self):
         result = []
         for dataset_id in self.redis_client.keys('*'):
-            if dataset_id == 'general':
+            #print "DS_id: ",dataset_id
+	    if dataset_id == 'general':
                 continue
-            result.append(eval(self.redis_client.get(dataset_id)))
+	    try:
+                result.append(eval(self.redis_client.get(dataset_id)))
+	    except:
+		print "DS_error: ", dataset_id
 
         return result
