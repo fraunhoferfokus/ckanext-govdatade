@@ -529,7 +529,7 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
 class BfJHarvester(JSONZipBaseHarvester):
    
     def info(self):
-        return {'name': 'bfJ',
+        return {'name': 'bfj',
                 'title': 'BfJ CKAN Harvester',
                 'description': 'A CKAN Harvester for BfJ.'}
 
