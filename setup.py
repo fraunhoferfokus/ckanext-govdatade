@@ -42,7 +42,7 @@ setup(
     regionalstatistik_harvester=ckanext.govdatade.harvesters.jsonharvester:RegionalStatistikZipHarvester
     sachsen_harvester=ckanext.govdatade.harvesters.jsonharvester:SachsenZipHarvester
     bmbf_harvester=ckanext.govdatade.harvesters.jsonharvester:BMBF_ZipHarvester
-	bfg_harvester=ckanext.govdatade.harvesters.jsonharvester:BfGHarvester
+	bfJ_harvester=ckanext.govdatade.harvesters.jsonharvester:BfJHarvester
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker

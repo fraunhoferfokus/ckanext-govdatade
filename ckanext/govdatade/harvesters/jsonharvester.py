@@ -526,12 +526,12 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
         harvest_object.content = json.dumps(package)
         super(BMBF_ZipHarvester, self).import_stage(harvest_object)
                 
-class BfGHarvester(JSONZipBaseHarvester):
+class BfJHarvester(JSONZipBaseHarvester):
    
     def info(self):
-        return {'name': 'bfg',
-                'title': 'BfG CKAN Harvester',
-                'description': 'A CKAN Harvester for BfG.'}
+        return {'name': 'bfJ',
+                'title': 'BfJ CKAN Harvester',
+                'description': 'A CKAN Harvester for BfJ.'}
 
     def amend_package(self, package):
         # generate id based on OID namespace and package name, this makes sure,
