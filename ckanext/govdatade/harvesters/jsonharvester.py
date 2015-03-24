@@ -571,7 +571,9 @@ class BfJHarvester(JSONZipBaseHarvester):
         
         for name in archive.namelist():
             if name.endswith(".json"):
-                package = json.loads(archive.read(name))
+                _input = archive.read(name)
+                _input = _input.decode("latin9")
+                package = json.loads(input)
                 packages.append(package)
                 obj = HarvestObject(guid=package['name'], job=harvest_job)
                 obj.content = json.dumps(package)
