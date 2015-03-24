@@ -80,7 +80,7 @@ class LinkChecker:
 
     def validate(self, url):
 	#logme(url)
-	if "statistik.sachsen" in url:
+	if "statistik.sachsen" in url or "www.bundesjustizamt.de" in url:
 		headers = { 'User-Agent' : 'Mozilla/5.0' }
 		req = urllib2.Request(url, None, headers)
 		try:
@@ -91,9 +91,8 @@ class LinkChecker:
 			#logme("HTTP-CODE(e): " + str(e.code))
 			return e.code
 
-	#if not sachsen...
-        response = requests.head(url, allow_redirects=True,
-                                 timeout=self.TIMEOUT)
+	else:
+                                    response = requests.head(url, allow_redirects=True,timeout=self.TIMEOUT)
         if self.is_available(response.status_code):
             return response.status_code
 	    #logme("validate_if: RESPONSE.status: " + response.status_code)

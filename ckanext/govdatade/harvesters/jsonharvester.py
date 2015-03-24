@@ -10,6 +10,8 @@ import logging
 import uuid
 import zipfile
 import StringIO
+import httplib
+from urlparse import urlparse
 
 log = logging.getLogger(__name__)
 
@@ -317,8 +319,8 @@ class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
         archive = zipfile.ZipFile(file_content, "r")
         for name in archive.namelist():
             if name.endswith(".json"):
-		package = json.loads(archive.read(name))
-		packages.append(package)
+                package = json.loads(archive.read(name))
+                packages.append(package)
                 obj = HarvestObject(guid=package['name'], job=harvest_job)
                 obj.content = json.dumps(package)
                 obj.save()
@@ -540,6 +542,52 @@ class BfJHarvester(JSONZipBaseHarvester):
         package['extras']['metadata_original_portal'] = 'https://www.bundesjustizamt.de'
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
+            
+    def gather_stage(self, harvest_job):
+
+        self._set_config(harvest_job.source.config)
+        # Request all remote packages
+        try:
+            #split the url into base, path and query to set up a https connectino before downloading the *.zip
+            #url has to start with 'https://..' 
+            parsed_uri = urlparse(harvest_job.source.url)
+            domain = '{uri.netloc}'.format(uri=parsed_uri)
+            url = '{uri.path}?{uri.query}'.format(uri=parsed_uri) 
+            
+            conn = httplib.HTTPSConnection(domain)
+            conn.request("GET", url)
+            response = conn.getresponse()
+            content = response.read()
+        except Exception, e:
+            self._save_gather_error('Unable to get content for URL: %s: %s' % (harvest_job.source.url, str(e)),
+                                    harvest_job)
+            return None
+
+        object_ids = []
+        packages = []
+
+        file_content = StringIO.StringIO(content)
+        archive = zipfile.ZipFile(file_content, "r")
+        
+        for name in archive.namelist():
+            if name.endswith(".json"):
+                _input = archive.read(name)
+                _input = _input.decode("latin9")
+                package = json.loads(_input)
+                packages.append(package)
+                obj = HarvestObject(guid=package['name'], job=harvest_job)
+                obj.content = json.dumps(package)
+                obj.save()
+                object_ids.append(obj.id)
+
+        if object_ids:
+            return object_ids
+        else:
+            self._save_gather_error('No packages received for URL: %s' % harvest_job.source.url,
+                                    harvest_job)
+            return None
+        
+        
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
