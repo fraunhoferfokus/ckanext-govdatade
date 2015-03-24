@@ -476,10 +476,6 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
         package['extras']['metadata_original_portal'] = 'http://www.statistik.sachsen.de/'
-        '''for resource in package['resources']:
-            resource['url'] = resource['url'].replace('tabelleErgebnis','tabellen')
-            resource['url'] = resource['url'].replace('tabelleDownload','tabellen')'''
-            
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
@@ -529,3 +525,27 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         super(BMBF_ZipHarvester, self).import_stage(harvest_object)
+                
+class BfJHarvester(JSONZipBaseHarvester):
+   
+    def info(self):
+        return {'name': 'bfj',
+                'title': 'BfJ CKAN Harvester',
+                'description': 'A CKAN Harvester for BfJ.'}
+
+    def amend_package(self, package):
+        # generate id based on OID namespace and package name, this makes sure,
+        # that packages with the same name get the same id
+        package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
+        package['extras']['metadata_original_portal'] = 'https://www.bundesjustizamt.de'
+        for resource in package['resources']:
+            resource['format'] = resource['format'].lower()
+
+    def import_stage(self, harvest_object):
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        super(JSONZipBaseHarvester, self).import_stage(harvest_object)
+
