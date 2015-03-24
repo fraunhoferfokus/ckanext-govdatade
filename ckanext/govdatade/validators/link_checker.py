@@ -152,7 +152,7 @@ class LinkChecker:
                 url_entry['date'] = date.strftime("%Y-%m-%d")
                 self.redis_client.set(dataset_id, record)
 
-        delete = record['urls'][url]['strikes'] >= 3
+        delete = record['urls'][url]['strikes'] >= 100
 
         return delete
 
