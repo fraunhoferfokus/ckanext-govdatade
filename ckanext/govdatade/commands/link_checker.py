@@ -18,6 +18,10 @@ from jinja2 import Environment, FileSystemLoader
 import os
 import requests
 
+def logme(logText):      
+        f = open('/opt/linkChecker.log','a')
+        f.write(logText + '\n')
+        f.close
 
 class LinkChecker(CkanCommand):
     '''Checks the availability of the dataset's URLs'''
@@ -38,13 +42,9 @@ class LinkChecker(CkanCommand):
                 num_urls += 1
                 url = resource['url'].encode('utf-8')
                 response_code = checker.validate(url)
-                print response_code
 
                 if checker.is_available(response_code):
                     num_success += 1
-
-        print num_urls
-        print num_success
 
     def generate_report(self):
         data = {}

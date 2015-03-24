@@ -4,8 +4,14 @@ import redis
 import requests
 import socket
 import logging
+import urllib2
 
 log = logging.getLogger(__name__)
+
+def logme(logText):      
+        f = open('/opt/linkChecker.log','a')
+        f.write(logText + '\n')
+        f.close
 
 class LinkChecker:
 
@@ -21,6 +27,7 @@ class LinkChecker:
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
+	#logme("DATASET_ID: " + dataset_id)
         delete = False
         
         portal = None
@@ -28,11 +35,14 @@ class LinkChecker:
            'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
         for resource in dataset['resources']:
+	    #logme("RESOURCE_URL: " + resource['url'])
             url = resource['url']
             url = url.replace('sequenz=tabelleErgebnis','sequenz=tabellen')
             url = url.replace('sequenz=tabelleDownload','sequenz=tabellen')
+	    #logme("URL :" + url)
             try:
-                code = self.validate(resource['url'])
+                code = self.validate(url)
+		#logme("CODE: " + str(code))
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
@@ -53,33 +63,54 @@ class LinkChecker:
             except socket.timeout:
                 delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
-        
         return delete
 
     def check_dataset(self, dataset):
         results = []
         for resource in dataset['resources']:
-            results.append(self.validate(resource['url']))
+	    #logme("check_dataset: RESOURCE: " + resource['url'])
+            #fca results.append(self.validate(resource['url']))
+	    url = resource['url']
+            url = url.replace('sequenz=tabelleErgebnis','sequenz=tabellen')
+            url = url.replace('sequenz=tabelleDownload','sequenz=tabellen')
+            results.append(self.validate(url))
+	    #logme("check_dataset: RESOURCE: " + resource['url'])
+	    #logme("check_dataset: RESULTS: " + results) 
         return results
 
     def validate(self, url):
+	#logme(url)
+	if "statistik.sachsen" in url:
+		headers = { 'User-Agent' : 'Mozilla/5.0' }
+		req = urllib2.Request(url, None, headers)
+		try:
+			respo = urllib2.urlopen(req)
+			#logme("HTTP-CODE: " + str(respo.code))
+			return respo.code
+		except urllib2.URLError, e:
+			#logme("HTTP-CODE(e): " + str(e.code))
+			return e.code
+
+	#if not sachsen...
         response = requests.head(url, allow_redirects=True,
                                  timeout=self.TIMEOUT)
-
         if self.is_available(response.status_code):
             return response.status_code
+	    #logme("validate_if: RESPONSE.status: " + response.status_code)
         else:
-            response = requests.get(url, allow_redirects=True,
-                                    timeout=self.TIMEOUT)
+            response = requests.get(url, allow_redirects=True,timeout=self.TIMEOUT)
+            #logme("validate_else: RESPONSE.status: " + str(response.status_code))
             return response.status_code
+	
 
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
     def record_failure(self, dataset, url, status, portal,
                        date=datetime.now().date()):
-
+	#logme("record_failure: URL: " + url)
         dataset_id = dataset['id']
+	#logme("record_failure: DATASET_ID: " + dataset_id)
         dataset_name = dataset['name']
         delete = False
         log.debug(self.redis_client.get(dataset_id))

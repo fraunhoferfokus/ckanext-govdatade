@@ -23,27 +23,24 @@ class SchemaChecker:
 
 	try:
 	   record = eval(record)
+	   print "RECORD_ID_____: ", record['id']
 	except:
 	   print "EVAL_ERROR"
-
-	print "RECORD: ", record
 
         portal = dataset['extras'].get('metadata_original_portal', 'null')
 
         if record is None:
             record = {'id': dataset_id, 'metadata_original_portal': portal}
-        else:
-	    try:                  
-               record = eval(record)
-            except:
-               print "Record_error: ", record
-	       print "rec_Schema___:", record['schema']
-        try:
-           record['schema'] = []
-        except:
-           print "TypeError"
-        
+#fca	    print "if RECORD is NONE_________: ", record
+            record['schema'] = []
+
         broken_rules = []
+
+#fca     else:
+#	    try:                  
+#               record = eval(record)
+#            except:
+#               print "SECONDE_EVAL_ERROR_____: ", record
 
         errors = Draft3Validator(self.schema).iter_errors(dataset)
 
@@ -64,12 +61,12 @@ class SchemaChecker:
             field_path_message = [path, "WARNING: too many groups set"]
             broken_rules.append(field_path_message)
 
-	print "broken_rules: ", broken_rules
+	print "BROKEN_RULES_____: ", broken_rules
 
 	try:
            record['schema'] = broken_rules
 	except:
-	   print "broken_rules_Error: ", broken_rules
+	   print "SCHEMA_BROKEN_RULES_ERROR_____"
 
         self.redis_client.set(dataset_id, record)
 
