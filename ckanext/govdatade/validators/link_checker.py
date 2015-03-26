@@ -80,27 +80,28 @@ class LinkChecker:
 
     def validate(self, url):
 	#logme(url)
-	if "statistik.sachsen" in url or "www.bundesjustizamt.de" in url:
-		headers = { 'User-Agent' : 'Mozilla/5.0' }
-		req = urllib2.Request(url, None, headers)
-		try:
-			respo = urllib2.urlopen(req)
-			#logme("HTTP-CODE: " + str(respo.code))
-			return respo.code
-		except urllib2.URLError, e:
-			#logme("HTTP-CODE(e): " + str(e.code))
-			return e.code
-
+	# do not check datasets from saxony until fix
+	if "statistik.sachsen" in url:
+	    return 200
+	elif "www.bundesjustizamt.de" in url:
+	    headers = { 'User-Agent' : 'Mozilla/5.0' }
+	    req = urllib2.Request(url, None, headers)
+	    try:
+		respo = urllib2.urlopen(req)
+		#logme("HTTP-CODE: " + str(respo.code))
+		return respo.code
+	    except urllib2.URLError, e:
+		#logme("HTTP-CODE(e): " + str(e.code))
+		return e.code
 	else:
-                                    response = requests.head(url, allow_redirects=True,timeout=self.TIMEOUT)
-        if self.is_available(response.status_code):
-            return response.status_code
-	    #logme("validate_if: RESPONSE.status: " + response.status_code)
-        else:
-            response = requests.get(url, allow_redirects=True,timeout=self.TIMEOUT)
-            #logme("validate_else: RESPONSE.status: " + str(response.status_code))
-            return response.status_code
-	
+            response = requests.head(url, allow_redirects=True,timeout=self.TIMEOUT)
+            if self.is_available(response.status_code):
+                return response.status_code
+	        #logme("validate_if: RESPONSE.status: " + response.status_code)
+            else:
+                response = requests.get(url, allow_redirects=True,timeout=self.TIMEOUT)
+                #logme("validate_else: RESPONSE.status: " + str(response.status_code))
+                return response.status_code
 
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
