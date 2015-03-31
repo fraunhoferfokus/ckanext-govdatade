@@ -44,7 +44,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for field, count in schema.rule_statistic.iteritems() %}
+          {% for field, count in schema.rule_statistic|dictsort(false, 'value')|reverse %}
             <tr>
               <td>{{ field }}</td>
               <td>{{ count }}</td>
