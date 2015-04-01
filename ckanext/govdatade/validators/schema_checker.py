@@ -1,5 +1,4 @@
 from jsonschema.validators import Draft3Validator
-from jsonschema import FormatChecker
 
 import json
 import urllib2
@@ -43,9 +42,9 @@ class SchemaChecker:
 #            except:
 #               print "SECONDE_EVAL_ERROR_____: ", record
 
-        errors = Draft3Validator(self.schema,format_checker=FormatChecker(formats=['date-time'])).iter_errors(dataset)
-        if not Draft3Validator(self.schema,format_checker=FormatChecker(formats=['date-time'])).is_valid(dataset):
-            errors = Draft3Validator(self.schema,format_checker=FormatChecker(formats=['date-time'])).iter_errors(dataset)
+        errors = Draft3Validator(self.schema).iter_errors(dataset)
+        if not Draft3Validator(self.schema,).is_valid(dataset):
+            errors = Draft3Validator(self.schema).iter_errors(dataset)
 
             for error in errors:
                 path = [e for e in error.path if isinstance(e, basestring)]
