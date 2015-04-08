@@ -125,6 +125,21 @@ class GovDataHarvester(GroupCKANHarvester):
                 local_dataset['tags'].append({'name': 'deprecated'})
                 package_update(context, local_dataset)
 
+    def compare_metadata_modified(self, remote_md_modified, local_md_modified):
+        dt_format = "%Y-%m-%dT%H:%M:%S.%f"
+        remote_dt = datetime.datetime.strptime(remote_md_modified, dt_format)
+        local_dt = datetime.datetime.strptime(local_md_modified, dt_format)
+        if remote_dt < local_dt:
+            log.debug('remote dataset precedes local dataset -> skipping.')
+            return False
+        elif remote_dt == local_dt:
+            log.debug('remote dataset equals local dataset -> skipping.')
+            return False
+        else:
+            log.debug('local dataset precedes remote dataset -> importing.')
+            # TODO do I have to delete other dataset?
+            return True
+
     def verify_transformer(self, remote_dataset):
         """ Based on metadata_transformer, this method checks, if a dataset should be imported"""
         registry = ckanapi.RemoteCKAN('http://localhost:80/ckan')
@@ -150,40 +165,41 @@ class GovDataHarvester(GroupCKANHarvester):
                                 value = entry['value']
                                 local_transformer = value.lstrip('"').rstrip('"')
                                 log.debug('Found local metadata transformer')
-			    if entry['key'] == 'metadata_original_portal':
-				tmp_value = entry['value']
-				local_portal = tmp_value.lstrip('"').rstrip('"')
-
-                        remote_transformer = remote_dataset_extras['metadata_transformer']
-                        if remote_transformer == local_transformer or remote_transformer == 'harvester':
-                            #TODO this is temporary for gdi-de
-			    if local_portal == 'http://www.statistik.sachsen.de/' or local_portal == 'http://ims.geoportal.de/':
-				log.debug('Found geoportal or sachsen, accept import.')
-				return True
-			    log.debug('Remote metadata transformer equals local transformer -> skipping')
-                            return False
-                        elif remote_transformer == 'author' and local_transformer == 'harvester':
-                            log.debug(
-                                'Remote metadata transformer equals author and local equals harvester -> importing.')
-                            return True
+                            if entry['key'] == 'metadata_original_portal':
+                                            tmp_value = entry['value']
+                                            local_portal = tmp_value.lstrip('"').rstrip('"')
+                        if 'metadata_transformer' in remote_dataset_extras:
+                            remote_transformer = remote_dataset_extras['metadata_transformer']
+                            if remote_transformer == local_transformer or remote_transformer == 'harvester':
+                                # TODO this is temporary for gdi-de
+                                if local_portal == 'http://www.statistik.sachsen.de/' or local_portal == 'http://ims.geoportal.de/':
+                                    log.debug('Found geoportal or sachsen, accept import.')
+                                    return True
+                                log.debug('Remote metadata transformer equals local transformer -> check metadata_modified')
+                                # TODO check md_modified
+                                if 'metadata_modified' in remote_dataset:
+                                    return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
+                                else:
+                                    log.debug('Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
+                                    return False
+                            elif remote_transformer == 'author' and local_transformer == 'harvester':
+                                log.debug(
+                                    'Remote metadata transformer equals author and local equals harvester -> importing.')
+                                return True
+                            else:
+                                log.debug('unknown value for remote metadata_transformer -> skipping.')
+                                return False
                         else:
-                            log.debug('unknown value for remote metadata_transformer -> skipping.')
-                            return False
+                            log.debug('remote does not contain metadata_transformer, fallback on metadata_modified')
+                            # TODO check md_modified
+                            if 'metadata_modified' in remote_dataset:
+                                return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
+                            else:
+                                log.debug('Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
+                                return False
                     else:
                         if 'metadata_modified' in remote_dataset:
-                            dt_format = "%Y-%m-%dT%H:%M:%S.%f"
-                            remote_dt = datetime.datetime.strptime(remote_dataset['metadata_modified'], dt_format)
-                            local_dt = datetime.datetime.strptime(local_dataset['metadata_modified'], dt_format)
-                            if remote_dt < local_dt:
-                                log.debug('remote dataset precedes local dataset -> skipping.')
-                                return False
-                            elif remote_dt == local_dt:
-                                log.debug('remote dataset equals local dataset -> skipping.')
-                                return False
-                            else:
-                                log.debug('local dataset precedes remote dataset -> importing.')
-                                # TODO do I have to delete other dataset?
-                                return True
+                            return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
                         else:
                             log.debug(
                                 'Found duplicate entry but remote dataset does not contain metadata_modified -> skipping.')
