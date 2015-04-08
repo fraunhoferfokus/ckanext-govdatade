@@ -191,7 +191,6 @@ class GovDataHarvester(GroupCKANHarvester):
                                 return False
                         else:
                             log.debug('remote does not contain metadata_transformer, fallback on metadata_modified')
-                            # TODO check md_modified
                             if 'metadata_modified' in remote_dataset:
                                 return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
                             else:
