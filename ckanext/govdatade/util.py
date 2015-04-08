@@ -1,5 +1,5 @@
 from ckan.logic import get_action, NotFound
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 from ckanext.govdatade.validators import link_checker
 from ckanext.govdatade.validators import schema_checker
 from datetime import datetime
@@ -73,7 +73,7 @@ def normalize_extras(source):
 
 
 def copy_report_vendor_files():
-    target_dir = "/var/lib/ckan/one/static/reports/" #CONFIG.get('validators', 'report_dir')
+    target_dir = CONFIG.get('validators', 'report_dir')
     target_dir = os.path.join(target_dir, 'assets')
     target_dir = os.path.abspath(target_dir)
 
@@ -85,7 +85,7 @@ def copy_report_vendor_files():
 
 
 def copy_report_asset_files():
-    target_dir = "/var/lib/ckan/one/static/reports/" #CONFIG.get('validators', 'report_dir')
+    target_dir = CONFIG.get('validators', 'report_dir')
     target_dir = os.path.join(target_dir, 'assets')
     target_dir = os.path.abspath(target_dir)
 

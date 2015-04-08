@@ -1,8 +1,7 @@
 #!/bin/env python
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 
 import json
-import os
 import urllib2
 
 

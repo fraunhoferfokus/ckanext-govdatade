@@ -4,7 +4,7 @@
 from collections import defaultdict
 from ckan.lib.cli import CkanCommand
 
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 from ckanext.govdatade.util import copy_report_vendor_files
 from ckanext.govdatade.util import copy_report_asset_files
 
@@ -57,7 +57,7 @@ class Report(CkanCommand):
     def write_validation_result(self, rendered_template, template_file):
         target_file = template_file.rstrip(".jinja2")
 
-        target_dir = "/var/lib/ckan/one/static/reports/" #CONFIG.get('validators', 'report_dir')
+        target_dir = CONFIG.get('validators', 'report_dir')
         target_dir = os.path.join(target_dir, target_file)
         target_dir = os.path.abspath(target_dir)
 

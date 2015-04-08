@@ -8,7 +8,7 @@ from ckan.logic.schema import default_package_schema
 from ckanext.govdatade.util import normalize_action_dataset
 
 from ckan.lib.cli import CkanCommand
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 from ckanext.govdatade.util import iterate_remote_datasets
 from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.validators import link_checker

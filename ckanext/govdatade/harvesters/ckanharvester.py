@@ -6,7 +6,7 @@ from ckanext.harvest.model import HarvestObject
 from ckanext.govdatade.harvesters.translator import translate_groups
 from ckanext.govdatade.util import iterate_local_datasets
 from ckanext.govdatade.validators.link_checker import LinkChecker
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 
 from ckan import model
 from ckan.logic import get_action
@@ -51,8 +51,8 @@ class GroupCKANHarvester(CKANHarvester):
     """Enforce API version 1 for enabling group import"""
 
     def __init__(self):
-        schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json'  # CONFIG.get('URLs', 'schema')
-        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json'  # CONFIG.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
         self.link_checker = LinkChecker()
@@ -382,8 +382,8 @@ class RLPCKANHarvester(GovDataHarvester):
 
     def __init__(self):
 
-        schema_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/OGPD_JSON_Schema.json'  # CONFIG.get('URLs', 'schema')
-        groups_url = 'https://raw.githubusercontent.com/fraunhoferfokus/ogd-metadata/master/kategorien/deutschland.json'  # CONFIG.get('URLs', 'groups')
+        schema_url = CONFIG.get('URLs', 'schema')
+        groups_url = CONFIG.get('URLs', 'groups')
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())

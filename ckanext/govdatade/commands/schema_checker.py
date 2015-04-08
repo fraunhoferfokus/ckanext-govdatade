@@ -131,18 +131,13 @@ class SchemaChecker(CkanCommand):
                        'ignore_auth': True}
             
             package_show = get_action('package_show')
-            validator = schema_checker.SchemaChecker()
-
-            num_datasets = 1
             dataset_name = self.args[1]
-            dataset =  package_show(context, {'id': dataset_name})
+            dataset = package_show(context, {'id': dataset_name})
                    
             print 'Processing dataset %s' % dataset
             normalize_action_dataset(dataset)
+            validator = schema_checker.SchemaChecker()
             validator.process_record(dataset)
-            
-            general = {'num_datasets': num_datasets}
-            validator.redis_client.set('general', general)
 
         elif len(self.args) == 2 and self.args[0] == 'remote':
             endpoint = self.args[1]
