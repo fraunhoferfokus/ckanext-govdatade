@@ -172,8 +172,8 @@ class GovDataHarvester(GroupCKANHarvester):
                             remote_transformer = remote_dataset_extras['metadata_transformer']
                             if remote_transformer == local_transformer or remote_transformer == 'harvester':
                                 # TODO this is temporary for gdi-de
-                                if local_portal == 'http://www.statistik.sachsen.de/' or local_portal == 'http://ims.geoportal.de/':
-                                    log.debug('Found geoportal or sachsen, accept import.')
+                                if local_portal == 'http://www.statistik.sachsen.de/':
+                                    log.debug('Found sachsen, accept import.')
                                     return True
                                 log.debug('Remote metadata transformer equals local transformer -> check metadata_modified')
                                 # TODO check md_modified
