@@ -495,29 +495,24 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         return package_name in DatahubCKANHarvester.valid_packages
 
     def amend_package(self, package_dict):
-        portal = DatahubCKANHarvester.portal
+        portal = 'http://datahub.io/'
 
         package_dict['type'] = 'datensatz'
-        # Currently, only the description is displayed. Some datasets only have
-        # a descriptive name, but no description. Hence, it is copied if unset.
-        for resource in package_dict['resources']:
-            description = resource['description'].lower()
-            name = resource['name']
-
-            name_valid = name and not name.isspace()
-            description_invalid = not description or description.isspace()
-            type_only = 'rdf/xml' in description
-
-            if description_invalid or (type_only and name_valid):
-                resource['description'] = resource['name']
 
         for resource in package_dict['resources']:
             resource['format'] = resource['format'].lower()
 
         package_dict['extras']['metadata_original_portal'] = portal
         package_dict['groups'].append('bildung_wissenschaft')
-        package_dict['groups'] = [group for group in package_dict['groups']
-                                  if group in self.govdata_groups]
+
+    def import_stage(self, harvest_object):
+        
+        package = json.loads(harvest_object.content)
+
+        self.amend_package(package)
+
+        harvest_object.content = json.dumps(package)
+        super(DatahubCKANHarvester, self).import_stage(harvest_object)
 
 
 class KoelnCKANHarvester(GroupCKANHarvester):
