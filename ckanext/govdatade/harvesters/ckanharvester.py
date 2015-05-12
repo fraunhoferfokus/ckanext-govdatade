@@ -72,14 +72,14 @@ class GroupCKANHarvester(CKANHarvester):
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         
-        delete = self.link_checker.process_record(package_dict)
+        #delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
         
-        if delete:
-            package_dict['state'] = 'deleted'
-        else:
-            if 'deprecated' not in package_dict['tags']:
-                package_dict['state'] = 'active'
+        #if delete:
+        #    package_dict['state'] = 'deleted'
+        #else:
+        #    if 'deprecated' not in package_dict['tags']:
+        #        package_dict['state'] = 'active'
                 
         harvest_object.content = json.dumps(package_dict)
 
@@ -686,24 +686,44 @@ class BonnCKANHarvester(KoelnCKANHarvester):
 
 
     def amend_package(self, package):
-        super(BonnCKANHarvester, self).amend_package(package)
+		super(BonnCKANHarvester, self).amend_package(package)
 
-        if u'Öffentliche Verwaltung' in package['groups']:
-            package['groups'].append('verwaltung')
-	    package['groups'].remove(u'Öffentliche Verwaltung')
-	if u'Haushalt und Steuern' in package['groups']:
-            package['groups'].append('politik_wahlen')
-            package['groups'].remove('Haushalt und Steuern')
-	if u'Geographie' in package['groups']:
-            package['groups'].append('geo')
-            package['groups'].remove(u'Geographie')
-            package['groups'].remove(u'Geologie und Geobasisdaten')
-	if u'Politik und Wahlen' in package['groups']:
-            package['groups'].append('politik_wahlen')
-	    package['groups'].remove(u'Politik und Wahlen')
-	if u'Bevölkerung' in package['groups']:
-	    package['groups'].append('bevoelkerung')
-	    package['groups'].remove(u'Bevölkerung')
+		if u'Öffentliche Verwaltung' in package['groups']:
+			package['groups'].append('verwaltung')
+			package['groups'].remove(u'Öffentliche Verwaltung')
+		if u'Haushalt und Steuern' in package['groups']:
+			package['groups'].append('politik_wahlen')
+			package['groups'].remove('Haushalt und Steuern')
+		if u'Geographie' in package['groups']:
+			package['groups'].append('geo')
+			package['groups'].remove(u'Geographie')
+			package['groups'].remove(u'Geologie und Geobasisdaten')
+		if u'Politik und Wahlen' in package['groups']:
+			package['groups'].append('politik_wahlen')
+			package['groups'].remove(u'Politik und Wahlen')
+		if u'Bevölkerung' in package['groups']:
+			package['groups'].append('bevoelkerung')
+			package['groups'].remove(u'Bevölkerung')
 
-	package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
-	package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
+		package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
+		package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
+
+
+class OpenNRWCKANHarvester(GroupCKANHarvester):
+    '''
+    A CKAN Harvester for OpenNRW
+    '''
+
+    def info(self):
+        return {'name': 'opennrw',
+                'title': 'OpenNRW CKAN Harvester',
+                'description': 'A CKAN Harvester for OpenNRW'}
+                
+    def import_stage(self, harvest_object):
+		package_dict = json.loads(harvest_object.content)
+		package_dict['extras']['metadata_original_portal'] = 'http://open.nrw/'
+
+		harvest_object.content = json.dumps(package_dict)
+		super(OpenNRWCKANHarvester, self).import_stage(harvest_object)
+
+
