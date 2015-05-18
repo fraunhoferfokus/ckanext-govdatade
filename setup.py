@@ -47,6 +47,7 @@ setup(
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
+    purge = ckanext.govdatade.commands.purge:Purge
     report = ckanext.govdatade.commands.report:Report
 
     [nose.plugins]
