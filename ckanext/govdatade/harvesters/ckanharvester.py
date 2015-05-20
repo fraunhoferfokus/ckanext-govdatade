@@ -68,19 +68,19 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
         self.config['user'] = 'harvest'
-                    
+
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
-        
-        #delete = self.link_checker.process_record(package_dict)
+
+        # delete = self.link_checker.process_record(package_dict)
         # deactivated until broken links are fixed
-        
+
         #if delete:
         #    package_dict['state'] = 'deleted'
         #else:
         #    if 'deprecated' not in package_dict['tags']:
         #        package_dict['state'] = 'active'
-                
+
         harvest_object.content = json.dumps(package_dict)
 
         super(GroupCKANHarvester, self).import_stage(harvest_object)
@@ -166,8 +166,8 @@ class GovDataHarvester(GroupCKANHarvester):
                                 local_transformer = value.lstrip('"').rstrip('"')
                                 log.debug('Found local metadata transformer')
                             if entry['key'] == 'metadata_original_portal':
-                                            tmp_value = entry['value']
-                                            local_portal = tmp_value.lstrip('"').rstrip('"')
+                                tmp_value = entry['value']
+                                local_portal = tmp_value.lstrip('"').rstrip('"')
                         if 'metadata_transformer' in remote_dataset_extras:
                             remote_transformer = remote_dataset_extras['metadata_transformer']
                             if remote_transformer == local_transformer or remote_transformer == 'harvester':
@@ -175,12 +175,15 @@ class GovDataHarvester(GroupCKANHarvester):
                                 if local_portal == 'http://www.statistik.sachsen.de/':
                                     log.debug('Found sachsen, accept import.')
                                     return True
-                                log.debug('Remote metadata transformer equals local transformer -> check metadata_modified')
+                                log.debug(
+                                    'Remote metadata transformer equals local transformer -> check metadata_modified')
                                 # TODO check md_modified
                                 if 'metadata_modified' in remote_dataset:
-                                    return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
+                                    return self.compare_metadata_modified(remote_dataset['metadata_modified'],
+                                                                          local_dataset['metadata_modified'])
                                 else:
-                                    log.debug('Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
+                                    log.debug(
+                                        'Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
                                     return False
                             elif remote_transformer == 'author' and local_transformer == 'harvester':
                                 log.debug(
@@ -192,13 +195,16 @@ class GovDataHarvester(GroupCKANHarvester):
                         else:
                             log.debug('remote does not contain metadata_transformer, fallback on metadata_modified')
                             if 'metadata_modified' in remote_dataset:
-                                return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
+                                return self.compare_metadata_modified(remote_dataset['metadata_modified'],
+                                                                      local_dataset['metadata_modified'])
                             else:
-                                log.debug('Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
+                                log.debug(
+                                    'Remote metadata transformer equals local transformer, but remote dataset does not contain metadata_modified -> skipping')
                                 return False
                     else:
                         if 'metadata_modified' in remote_dataset:
-                            return self.compare_metadata_modified(remote_dataset['metadata_modified'], local_dataset['metadata_modified'])
+                            return self.compare_metadata_modified(remote_dataset['metadata_modified'],
+                                                                  local_dataset['metadata_modified'])
                         else:
                             log.debug(
                                 'Found duplicate entry but remote dataset does not contain metadata_modified -> skipping.')
@@ -506,7 +512,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         package_dict['groups'].append('bildung_wissenschaft')
 
     def import_stage(self, harvest_object):
-        
+
         package = json.loads(harvest_object.content)
 
         self.amend_package(package)
@@ -561,7 +567,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
 
 
     def fetch_stage(self, harvest_object):
-        log.debug('In ' + self.city +'CKANHarvester fetch_stage')
+        log.debug('In ' + self.city + 'CKANHarvester fetch_stage')
         self._set_config(None)
 
         # Get contents
@@ -589,7 +595,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
             self.amend_package(package_dict)
         except ValueError, e:
             self._save_object_error(str(e), harvest_object)
-            log.error(self.city +': ' + str(e))
+            log.error(self.city + ': ' + str(e))
             return
 
         harvest_object.content = json.dumps(package_dict)
@@ -686,27 +692,27 @@ class BonnCKANHarvester(KoelnCKANHarvester):
 
 
     def amend_package(self, package):
-		super(BonnCKANHarvester, self).amend_package(package)
+        super(BonnCKANHarvester, self).amend_package(package)
 
-		if u'Öffentliche Verwaltung' in package['groups']:
-			package['groups'].append('verwaltung')
-			package['groups'].remove(u'Öffentliche Verwaltung')
-		if u'Haushalt und Steuern' in package['groups']:
-			package['groups'].append('politik_wahlen')
-			package['groups'].remove('Haushalt und Steuern')
-		if u'Geographie' in package['groups']:
-			package['groups'].append('geo')
-			package['groups'].remove(u'Geographie')
-			package['groups'].remove(u'Geologie und Geobasisdaten')
-		if u'Politik und Wahlen' in package['groups']:
-			package['groups'].append('politik_wahlen')
-			package['groups'].remove(u'Politik und Wahlen')
-		if u'Bevölkerung' in package['groups']:
-			package['groups'].append('bevoelkerung')
-			package['groups'].remove(u'Bevölkerung')
+        if u'Öffentliche Verwaltung' in package['groups']:
+            package['groups'].append('verwaltung')
+            package['groups'].remove(u'Öffentliche Verwaltung')
+        if u'Haushalt und Steuern' in package['groups']:
+            package['groups'].append('politik_wahlen')
+            package['groups'].remove('Haushalt und Steuern')
+        if u'Geographie' in package['groups']:
+            package['groups'].append('geo')
+            package['groups'].remove(u'Geographie')
+            package['groups'].remove(u'Geologie und Geobasisdaten')
+        if u'Politik und Wahlen' in package['groups']:
+            package['groups'].append('politik_wahlen')
+            package['groups'].remove(u'Politik und Wahlen')
+        if u'Bevölkerung' in package['groups']:
+            package['groups'].append('bevoelkerung')
+            package['groups'].remove(u'Bevölkerung')
 
-		package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
-		package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
+        package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
+        package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
 
 
 class OpenNRWCKANHarvester(GroupCKANHarvester):
@@ -718,12 +724,17 @@ class OpenNRWCKANHarvester(GroupCKANHarvester):
         return {'name': 'opennrw',
                 'title': 'OpenNRW CKAN Harvester',
                 'description': 'A CKAN Harvester for OpenNRW'}
-                
-    def import_stage(self, harvest_object):
-		package_dict = json.loads(harvest_object.content)
-		package_dict['extras']['metadata_original_portal'] = 'http://open.nrw/'
 
-		harvest_object.content = json.dumps(package_dict)
-		super(OpenNRWCKANHarvester, self).import_stage(harvest_object)
+    def import_stage(self, harvest_object):
+        package_dict = json.loads(harvest_object.content)
+        package_dict['extras']['metadata_original_portal'] = 'http://open.nrw/'
+        package_dict['extras']['metadata_transformer'] = ''
+
+        if 'notes' in package_dict and 'opennrw_notes' in package_dict['extras']:
+            new_notes = package_dict['notes'] + '\r\n\r\n' + package_dict['extras']['opennrw_notes']
+            package_dict['notes'] = new_notes
+
+        harvest_object.content = json.dumps(package_dict)
+        super(OpenNRWCKANHarvester, self).import_stage(harvest_object)
 
 
