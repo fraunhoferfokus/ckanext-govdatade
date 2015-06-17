@@ -729,10 +729,10 @@ class OpenNRWCKANHarvester(GroupCKANHarvester):
         package_dict = json.loads(harvest_object.content)
         package_dict['extras']['metadata_original_portal'] = 'http://open.nrw/'
         package_dict['extras']['metadata_transformer'] = ''
-
-        if 'notes' in package_dict and 'opennrw_notes' in package_dict['extras']:
-            new_notes = package_dict['notes'] + '\r\n\r\n' + package_dict['extras']['opennrw_notes']
-            package_dict['notes'] = new_notes
+        #
+        # if 'notes' in package_dict and 'opennrw_notes' in package_dict['extras']:
+        #     new_notes = package_dict['notes'] + '\r\n\r\n' + package_dict['extras']['opennrw_notes']
+        #     package_dict['notes'] = new_notes
 
         harvest_object.content = json.dumps(package_dict)
         super(OpenNRWCKANHarvester, self).import_stage(harvest_object)

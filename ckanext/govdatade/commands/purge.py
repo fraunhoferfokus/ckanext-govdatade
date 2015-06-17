@@ -51,7 +51,7 @@ class Purge(CkanCommand):
                     self._purge(r['id'])
                     success += 1
                 except Exception as e:
-                    print 'ERROR: ' + e
+                    print 'ERROR: ' + e.message
                     error += 1
 
         print '============================================================='
