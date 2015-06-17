@@ -7,7 +7,7 @@ from ckan.lib.cli import CkanCommand
 from ckan.logic import get_action, NotFound
 from ckan.logic.schema import default_package_schema
 
-from ckanext.govdatade import CONFIG
+from ckanext.govdatade.config import CONFIG
 from ckanext.govdatade.util import normalize_action_dataset
 from ckanext.govdatade.util import iterate_local_datasets
 from ckanext.govdatade.validators import schema_checker
