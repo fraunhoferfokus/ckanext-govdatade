@@ -32,6 +32,7 @@ setup(
     koeln_harvester=ckanext.govdatade.harvesters.ckanharvester:KoelnCKANHarvester
     rostock_harvester=ckanext.govdatade.harvesters.ckanharvester:RostockCKANHarvester
     bonn_harvester=ckanext.govdatade.harvesters.ckanharvester:BonnCKANHarvester
+    opennrw_harvester=ckanext.govdatade.harvesters.ckanharvester:OpenNRWCKANHarvester
     bayern_harvester=ckanext.govdatade.harvesters.jsonharvester:BayernCKANHarvester
     bremen_harvester=ckanext.govdatade.harvesters.jsonharvester:BremenCKANHarvester
     moers_harvester=ckanext.govdatade.harvesters.jsonharvester:MoersCKANHarvester
@@ -46,6 +47,7 @@ setup(
     [paste.paster_command]
     schemachecker = ckanext.govdatade.commands.schema_checker:SchemaChecker
     linkchecker = ckanext.govdatade.commands.link_checker:LinkChecker
+    purge = ckanext.govdatade.commands.purge:Purge
     report = ckanext.govdatade.commands.report:Report
 
     [nose.plugins]
