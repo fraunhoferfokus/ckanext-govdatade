@@ -21,11 +21,11 @@ class SchemaChecker:
         dataset_id = dataset['id']
         record = self.redis_client.get(dataset_id)
 
-    try:
-        record = eval(record)
-        print "RECORD_ID_____: ", record['id']
-    except:
-        print "EVAL_ERROR"
+        try:
+            record = eval(record)
+            print "RECORD_ID_____: ", record['id']
+        except:
+            print "EVAL_ERROR"
 
         portal = dataset['extras'].get('metadata_original_portal', 'null')
 
@@ -61,12 +61,12 @@ class SchemaChecker:
             broken_rules.append(field_path_message)
 
 
-print "BROKEN_RULES_____: ", broken_rules
+        print "BROKEN_RULES_____: ", broken_rules
 
-try:
+        try:
            record['schema'] = broken_rules
-except:
-    print "SCHEMA_BROKEN_RULES_ERROR_____"
+        except:
+            print "SCHEMA_BROKEN_RULES_ERROR_____"
 
         self.redis_client.set(dataset_id, record)
 
