@@ -1,27 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+import os
+
+from jinja2 import Environment, FileSystemLoader
+
 from ckan import model
 from ckan.model import Session
 from ckan.lib.cli import CkanCommand
-from ckan.logic import get_action, NotFound
+from ckan.logic import get_action
 from ckan.logic.schema import default_package_schema
 from ckanext.govdatade.util import normalize_action_dataset
-
 from ckan.lib.cli import CkanCommand
 from ckanext.govdatade.config import CONFIG
 from ckanext.govdatade.util import iterate_remote_datasets
+from ckanext.govdatade.util import iterate_local_datasets
 from ckanext.govdatade.util import generate_link_checker_data
 from ckanext.govdatade.validators import link_checker
-from collections import defaultdict
-from jinja2 import Environment, FileSystemLoader
 
-import os
-import requests
 
-def logme(logText):      
+def logme(logText):
         f = open('/opt/linkChecker.log','a')
         f.write(logText + '\n')
         f.close
+
 
 class LinkChecker(CkanCommand):
     '''Checks the availability of the dataset's URLs'''
@@ -80,26 +81,41 @@ class LinkChecker(CkanCommand):
 
     def command(self):
         super(LinkChecker,self)._load_config()
-        context = self.create_context()
+        if len(self.args) == 0:
+
+            context = {'model': model,
+                       'session': model.Session,
+                       'ignore_auth': True}
+
+            validator = link_checker.LinkChecker()
+
+            num_datasets = 0
+            for i, dataset in enumerate(iterate_local_datasets(context)):
+                print 'Processing dataset %s' % i
+                normalize_action_dataset(dataset)
+                validator.process_record(dataset)
+                num_datasets += 1
+
+            general = {'num_datasets': num_datasets}
+            validator.redis_client.set('general', general)
         if len(self.args) > 0:
             subcommand = self.args[0]
             if subcommand == 'remote':
                 self.check_remote_host(self.args[1])
             elif subcommand == 'report':
-                self.generate_report()         
+                self.generate_report()
             elif len(self.args) == 2 and self.args[0] == 'specific':
-                dataset_name = self.args[1] 
+                dataset_name = self.args[1]
 
                 context = {'model':       model,
                            'session':     model.Session,
                            'ignore_auth': True}
-            
+
                 package_show = get_action('package_show')
                 validator = link_checker.LinkChecker()
 
-                dataset =  package_show(context, {'id': dataset_name})
-                   
+                dataset = package_show(context, {'id': dataset_name})
+
                 print 'Processing dataset %s' % dataset
                 normalize_action_dataset(dataset)
                 validator.process_record(dataset)
-

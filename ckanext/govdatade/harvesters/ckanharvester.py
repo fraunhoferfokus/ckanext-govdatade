@@ -1,24 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
-from ckanext.harvest.model import HarvestObject
-from ckanext.govdatade.harvesters.translator import translate_groups
-from ckanext.govdatade.util import iterate_local_datasets
-from ckanext.govdatade.validators.link_checker import LinkChecker
-from ckanext.govdatade.config import CONFIG
-
-from ckan import model
-from ckan.logic import get_action
-from ckan.logic.schema import default_package_schema
-from ckan.model import Session
-
 import json
 import logging
 import urllib2
-import uuid
-import ckanapi
 import datetime
+
+from ckanext.harvest.harvesters.ckanharvester import CKANHarvester
+from ckanext.harvest.model import HarvestObject
+import ckanapi
+
+from ckanext.govdatade.harvesters.translator import translate_groups
+from ckanext.govdatade.util import iterate_local_datasets
+from ckanext.govdatade.config import CONFIG
+from ckan import model
+
+from ckan.logic import get_action
+from ckan.logic.schema import default_package_schema
+from ckan.model import Session
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +54,6 @@ class GroupCKANHarvester(CKANHarvester):
         groups_url = CONFIG.get('URLs', 'groups')
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
-        self.link_checker = LinkChecker()
 
     def _set_config(self, config_str):
         """Enforce API version 1 for enabling group import"""
@@ -68,22 +66,6 @@ class GroupCKANHarvester(CKANHarvester):
         self.config['force_all'] = True
         self.config['remote_groups'] = 'only_local'
         self.config['user'] = 'harvest'
-                    
-    def import_stage(self, harvest_object):
-        package_dict = json.loads(harvest_object.content)
-        
-        delete = self.link_checker.process_record(package_dict)
-        # deactivated until broken links are fixed
-        
-        if delete:
-            package_dict['state'] = 'deleted'
-        else:
-            if 'deprecated' not in package_dict['tags']:
-                package_dict['state'] = 'active'
-                
-        harvest_object.content = json.dumps(package_dict)
-
-        super(GroupCKANHarvester, self).import_stage(harvest_object)
 
 
 class GovDataHarvester(GroupCKANHarvester):
@@ -386,7 +368,6 @@ class RLPCKANHarvester(GovDataHarvester):
 
         self.schema = json.loads(urllib2.urlopen(schema_url).read())
         self.govdata_groups = json.loads(urllib2.urlopen(groups_url).read())
-        self.link_checker = LinkChecker()
 
     def amend_package(self, package_dict):
         # manually set package type

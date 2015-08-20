@@ -1,7 +1,7 @@
-from jsonschema.validators import Draft3Validator
-
 import json
 import urllib2
+
+from jsonschema.validators import Draft3Validator
 import redis
 
 
@@ -21,11 +21,11 @@ class SchemaChecker:
         dataset_id = dataset['id']
         record = self.redis_client.get(dataset_id)
 
-	try:
-	   record = eval(record)
-	   print "RECORD_ID_____: ", record['id']
-	except:
-	   print "EVAL_ERROR"
+    try:
+        record = eval(record)
+        print "RECORD_ID_____: ", record['id']
+    except:
+        print "EVAL_ERROR"
 
         portal = dataset['extras'].get('metadata_original_portal', 'null')
 
@@ -60,12 +60,13 @@ class SchemaChecker:
             field_path_message = [path, "WARNING: too many groups set"]
             broken_rules.append(field_path_message)
 
-	print "BROKEN_RULES_____: ", broken_rules
 
-	try:
+print "BROKEN_RULES_____: ", broken_rules
+
+try:
            record['schema'] = broken_rules
-	except:
-	   print "SCHEMA_BROKEN_RULES_ERROR_____"
+except:
+    print "SCHEMA_BROKEN_RULES_ERROR_____"
 
         self.redis_client.set(dataset_id, record)
 
@@ -76,9 +77,9 @@ class SchemaChecker:
         for dataset_id in self.redis_client.keys('*'):
             if dataset_id == 'general':
                 continue
-	    try:
+        try:
                result.append(eval(self.redis_client.get(dataset_id)))
-	    except:
-	       print "DS_errer_schema: ", dataset_id
+        except:
+            print "DS_errer_schema: ", dataset_id
 
         return result

@@ -1,20 +1,20 @@
 from datetime import datetime
-
-import redis
-import requests
 import socket
 import logging
 import urllib2
 
+import redis
+import requests
+
 log = logging.getLogger(__name__)
 
-def logme(logText):      
-        f = open('/opt/linkChecker.log','a')
+
+def logme(logText):
+    with open('/opt/linkChecker.log', 'a') as f:
         f.write(logText + '\n')
-        f.close
+
 
 class LinkChecker:
-
     HEADERS = {'User-Agent': 'curl/7.29.0'}
     TIMEOUT = 30.0
 
@@ -27,22 +27,22 @@ class LinkChecker:
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
-	#logme("DATASET_ID: " + dataset_id)
+        # logme("DATASET_ID: " + dataset_id)
         delete = False
-        
+
         portal = None
         if 'extras' in dataset and \
-           'metadata_original_portal' in dataset['extras']:
+                        'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
         for resource in dataset['resources']:
-	    #logme("RESOURCE_URL: " + resource['url'])
+            # logme("RESOURCE_URL: " + resource['url'])
             url = resource['url']
-            url = url.replace('sequenz=tabelleErgebnis','sequenz=tabellen')
-            url = url.replace('sequenz=tabelleDownload','sequenz=tabellen')
-	    #logme("URL :" + url)
+            url = url.replace('sequenz=tabelleErgebnis', 'sequenz=tabellen')
+            url = url.replace('sequenz=tabelleDownload', 'sequenz=tabellen')
+            # logme("URL :" + url)
             try:
                 code = self.validate(url)
-		#logme("CODE: " + str(code))
+                # logme("CODE: " + str(code))
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
@@ -68,39 +68,39 @@ class LinkChecker:
     def check_dataset(self, dataset):
         results = []
         for resource in dataset['resources']:
-	    #logme("check_dataset: RESOURCE: " + resource['url'])
-            #fca results.append(self.validate(resource['url']))
-	    url = resource['url']
-            url = url.replace('sequenz=tabelleErgebnis','sequenz=tabellen')
-            url = url.replace('sequenz=tabelleDownload','sequenz=tabellen')
+            # logme("check_dataset: RESOURCE: " + resource['url'])
+            # fca results.append(self.validate(resource['url']))
+            url = resource['url']
+            url = url.replace('sequenz=tabelleErgebnis', 'sequenz=tabellen')
+            url = url.replace('sequenz=tabelleDownload', 'sequenz=tabellen')
             results.append(self.validate(url))
-	    #logme("check_dataset: RESOURCE: " + resource['url'])
-	    #logme("check_dataset: RESULTS: " + results) 
+            # logme("check_dataset: RESOURCE: " + resource['url'])
+            # logme("check_dataset: RESULTS: " + results)
         return results
 
     def validate(self, url):
-	#logme(url)
-	# do not check datasets from saxony until fix
-	if "statistik.sachsen" in url:
-	    return 200
-	elif "www.bundesjustizamt.de" in url:
-	    headers = { 'User-Agent' : 'Mozilla/5.0' }
-	    req = urllib2.Request(url, None, headers)
-	    try:
-		respo = urllib2.urlopen(req)
-		#logme("HTTP-CODE: " + str(respo.code))
-		return respo.code
-	    except urllib2.URLError, e:
-		#logme("HTTP-CODE(e): " + str(e.code))
-		return e.code
-	else:
-            response = requests.head(url, allow_redirects=True,timeout=self.TIMEOUT)
+        # logme(url)
+        # do not check datasets from saxony until fix
+        if "statistik.sachsen" in url:
+            return 200
+        elif "www.bundesjustizamt.de" in url:
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            req = urllib2.Request(url, None, headers)
+            try:
+                respo = urllib2.urlopen(req)
+                # logme("HTTP-CODE: " + str(respo.code))
+                return respo.code
+            except urllib2.URLError, e:
+                # logme("HTTP-CODE(e): " + str(e.code))
+                return e.code
+        else:
+            response = requests.head(url, allow_redirects=True, timeout=self.TIMEOUT)
             if self.is_available(response.status_code):
                 return response.status_code
-	        #logme("validate_if: RESPONSE.status: " + response.status_code)
+                # logme("validate_if: RESPONSE.status: " + response.status_code)
             else:
-                response = requests.get(url, allow_redirects=True,timeout=self.TIMEOUT)
-                #logme("validate_else: RESPONSE.status: " + str(response.status_code))
+                response = requests.get(url, allow_redirects=True, timeout=self.TIMEOUT)
+                # logme("validate_else: RESPONSE.status: " + str(response.status_code))
                 return response.status_code
 
     def is_available(self, response_code):
@@ -108,19 +108,19 @@ class LinkChecker:
 
     def record_failure(self, dataset, url, status, portal,
                        date=datetime.now().date()):
-	#logme("record_failure: URL: " + url)
+        # logme("record_failure: URL: " + url)
         dataset_id = dataset['id']
-	#logme("record_failure: DATASET_ID: " + dataset_id)
+        # logme("record_failure: DATASET_ID: " + dataset_id)
         dataset_name = dataset['name']
         delete = False
         log.debug(self.redis_client.get(dataset_id))
         record = unicode(self.redis_client.get(dataset_id))
-        try:     
-           record = eval(record)
+        try:
+            record = eval(record)
         except:
-               print "Record_error: ", record    
-        initial_url_record = {'status':  status,
-                              'date':    date.strftime("%Y-%m-%d"),
+            print "Record_error: ", record
+        initial_url_record = {'status': status,
+                              'date': date.strftime("%Y-%m-%d"),
                               'strikes': 1}
 
         if record is not None:
@@ -160,13 +160,13 @@ class LinkChecker:
         record = self.redis_client.get(dataset_id)
         if record is not None:
             try:
-               record = eval(unicode(record))
+                record = eval(unicode(record))
             except:
-               print "ConnError"
-            _type= type(record) is dict
+                print "ConnError"
+            _type = type(record) is dict
             # Remove URL entry due to working URL
             if record.get('urls'):
-               record['urls'].pop(url, None)
+                record['urls'].pop(url, None)
             # Remove record entry altogether if there are no failures
             # anymore
             if not record.get('urls'):
@@ -177,12 +177,12 @@ class LinkChecker:
     def get_records(self):
         result = []
         for dataset_id in self.redis_client.keys('*'):
-            #print "DS_id: ",dataset_id
-	    if dataset_id == 'general':
+            # print "DS_id: ",dataset_id
+            if dataset_id == 'general':
                 continue
-	    try:
+            try:
                 result.append(eval(self.redis_client.get(dataset_id)))
-	    except:
-		print "DS_error: ", dataset_id
+            except:
+                print "DS_error: ", dataset_id
 
         return result
