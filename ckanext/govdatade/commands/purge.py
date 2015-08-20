@@ -48,7 +48,7 @@ class Purge(CkanCommand):
                 try:
                     delete_result = package_delete(context, {'id': r['id']})
                     print '%s deleted' % r['name']
-                    self._purge(r['id'])
+                    #self._purge(r['id'])
                     success += 1
                 except Exception as e:
                     print 'ERROR: ' + e.message
