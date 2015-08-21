@@ -293,8 +293,9 @@ class HamburgCKANHarvester(GroupCKANHarvester):
         default_portal = 'http://suche.transparenz.hamburg.de/'
         if not extras.get('metadata_original_portal'):
             extras['metadata_original_portal'] = default_portal
-
-        assert_author_fields(package, package['maintainer'],
+        
+        if "mainainer" in package and "mainter_email" in package:
+            assert_author_fields(package, package['maintainer'],
                              package['maintainer_email'])
 
         return True
@@ -385,7 +386,8 @@ class RLPCKANHarvester(GovDataHarvester):
         for resource in package_dict['resources']:
             resource['format'] = resource['format'].lower()
 
-        assert_author_fields(package_dict, package_dict['point_of_contact'],
+        if "point_of_contact" in package and "point_of_contact_address" in package and "email" in package[point_of_contact_address]:
+            assert_author_fields(package_dict, package_dict['point_of_contact'],
                              package_dict['point_of_contact_address']['email'])
 
         package_dict['extras']['metadata_original_portal'] = 'http://daten.rlp.de'
