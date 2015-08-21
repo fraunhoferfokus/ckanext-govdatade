@@ -386,7 +386,7 @@ class RLPCKANHarvester(GovDataHarvester):
         for resource in package_dict['resources']:
             resource['format'] = resource['format'].lower()
 
-        if "point_of_contact" in package and "point_of_contact_address" in package and "email" in package[point_of_contact_address]:
+        if "point_of_contact" in package_dict and "point_of_contact_address" in package_dict and "email" in package_dict[point_of_contact_address]:
             assert_author_fields(package_dict, package_dict['point_of_contact'],
                              package_dict['point_of_contact_address']['email'])
 
