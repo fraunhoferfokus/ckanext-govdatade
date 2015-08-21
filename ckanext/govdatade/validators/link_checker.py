@@ -3,14 +3,17 @@ import socket
 import logging
 import urllib2
 
+import time
 import redis
 import requests
+
+import codecs
 
 log = logging.getLogger(__name__)
 
 
-def logme(logText):
-    with open('/opt/linkChecker.log', 'a') as f:
+def logme(logText, path="/opt/linkChecker.log"):
+    with codecs.open(path, "a", "utf-8") as f:
         f.write(logText + '\n')
 
 
@@ -27,15 +30,19 @@ class LinkChecker:
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
-        # logme("DATASET_ID: " + dataset_id)
+        my_path="/tmp/measurement_linkchecker.log"
+        logme("DATASET_ID: " + dataset_id, my_path)
         delete = False
 
         portal = None
         if 'extras' in dataset and \
                         'metadata_original_portal' in dataset['extras']:
             portal = dataset['extras']['metadata_original_portal']
+        logme("Beging link checking", my_path)
         for resource in dataset['resources']:
-            # logme("RESOURCE_URL: " + resource['url'])
+            logme("RESOURCE_URL: " + resource['url'], my_path)
+            start_time = time.time()
+            logme("Start time: "+ str(start_time), my_path)
             url = resource['url']
             url = url.replace('sequenz=tabelleErgebnis', 'sequenz=tabellen')
             url = url.replace('sequenz=tabelleDownload', 'sequenz=tabellen')
@@ -63,6 +70,10 @@ class LinkChecker:
             except socket.timeout:
                 delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
+            end_time = time.time()
+            logme("End time: "+ str(end_time),my_path)
+            logme("Total time: " + str(end_time-start_time),my_path)
+            logme("--------------------------", my_path)
         return delete
 
     def check_dataset(self, dataset):
@@ -135,6 +146,11 @@ class LinkChecker:
             record['metadata_original_portal'] = portal
             self.redis_client.set(dataset_id, record)
 
+        # Record is known, but only with schema errors
+        elif 'urls' not in record:
+            record['urls'] = {} 
+            record['urls'][url] = initial_url_record
+            self.redis_client.set(dataset_id, record)
         # Record is known, but not that particular URL (Resource)
         elif url not in record['urls']:
             record['urls'][url] = initial_url_record
