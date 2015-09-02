@@ -266,6 +266,40 @@ class HamburgCKANHarvester(GroupCKANHarvester):
                 'description': 'A CKAN Harvester for Hamburg solving data compatibility problems.'}
 
     def amend_package(self, package):
+        # check if latestVersion of package
+        extras = package['extras']
+
+        is_latest_version = extras.get('latestVersion', None)
+
+        if is_latest_version == "true":
+            log.debug('received latestVersion == true. Continue with this dataset')
+            # get metadata_original_id
+            # TODO subject to change in the future
+            remote_metadata_original_id = extras.get('metadata_original_id', None)
+            registry = ckanapi.RemoteCKAN('http://localhost:80/ckan')
+            local_search_result = registry.action.package_search(q='metadata_original_id:"' + remote_metadata_original_id + '"')
+            if local_search_result['count'] == 0:
+                log.debug('Did not find this metadata original id. Import accepted.')
+            elif local_search_result['count'] == 1:
+                log.debug('Found local dataset for particular metadata_original_id')
+                local_dataset_from_action_api = local_search_result['results'][0]
+
+                # copy name and id from local dataset to remote dataset
+                log.debug('Copy id and name to remote dataset')
+                log.debug(package['id'])
+                log.debug(package['name'])
+                package['id'] = local_dataset_from_action_api['id']
+                package['name'] = local_dataset_from_action_api['name']
+                log.debug(package['id'])
+                log.debug(package['name'])
+            else :
+                log.debug('Found more than one local dataset for particular metadata_original_id. Offending metadata_original_id is:')
+                log.debug(remote_metadata_original_id)
+        elif is_latest_version == 'false':
+            # do not import or update this particular remote dataset
+            log.debug('received latestVersion == false. Skip this dataset')
+            return False
+
         # check if import is desired
         if package['type'] == 'document':
             # check if tag 'govdata' exists
@@ -282,7 +316,6 @@ class HamburgCKANHarvester(GroupCKANHarvester):
         elif package['type'] == 'dataset':
             package['type'] = 'datensatz'
 
-        extras = package['extras']
         # fix groups
         log.debug("Before: ")
         log.debug(package['groups'])
@@ -293,10 +326,9 @@ class HamburgCKANHarvester(GroupCKANHarvester):
         default_portal = 'http://suche.transparenz.hamburg.de/'
         if not extras.get('metadata_original_portal'):
             extras['metadata_original_portal'] = default_portal
-        
-        if "mainainer" in package and "mainter_email" in package:
-            assert_author_fields(package, package['maintainer'],
-                             package['maintainer_email'])
+
+        assert_author_fields(package, package.get('maintainer'),
+                             package.get('maintainer_email'))
 
         return True
 
