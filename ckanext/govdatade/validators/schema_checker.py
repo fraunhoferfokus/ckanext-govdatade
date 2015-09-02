@@ -77,9 +77,9 @@ class SchemaChecker:
         for dataset_id in self.redis_client.keys('*'):
             if dataset_id == 'general':
                 continue
-        try:
-               result.append(eval(self.redis_client.get(dataset_id)))
-        except:
-            print "DS_errer_schema: ", dataset_id
+            try:
+                result.append(eval(self.redis_client.get(dataset_id)))
+            except:
+                print "DS_errer_schema: ", dataset_id
 
         return result
