@@ -300,6 +300,32 @@ class HamburgCKANHarvester(GroupCKANHarvester):
 
         return True
 
+    def fetch_stage(self,harvest_object):
+        log.debug('In CKANHarvester fetch_stage')
+
+        self._set_config(harvest_object.job.source.config)
+
+        # Get source URL
+        url = harvest_object.source.url.rstrip('/')
+        url = url + self._get_rest_api_offset() + '/package/' + harvest_object.guid
+
+        # Get contents
+        try:
+            content = self._get_content(url)
+        except Exception,e:
+            self._save_object_error('Unable to get content for package: %s: %r' % \
+                                        (url, e),harvest_object)
+            import time
+            log.debug('Going to sleep for 45s')
+            time.sleep(45)
+            log.debug('Wake up from sleep')
+            return None
+
+        # Save the fetched contents in the HarvestObject
+        harvest_object.content = content
+        harvest_object.save()
+        return True
+
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
         try:
