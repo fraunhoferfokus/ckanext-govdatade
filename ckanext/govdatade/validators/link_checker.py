@@ -11,11 +11,11 @@ import codecs
 
 log = logging.getLogger(__name__)
 
+my_path="/tmp/measurement_linkchecker.log"
 
 def logme(logText, path="/opt/linkChecker.log"):
     with codecs.open(path, "a", "utf-8") as f:
         f.write(logText + '\n')
-
 
 class LinkChecker:
     HEADERS = {'User-Agent': 'curl/7.29.0'}
@@ -30,8 +30,6 @@ class LinkChecker:
 
     def process_record(self, dataset):
         dataset_id = dataset['id']
-        my_path="/tmp/measurement_linkchecker.log"
-        logme("DATASET_ID: " + dataset_id, my_path)
         delete = False
 
         portal = None
@@ -46,10 +44,8 @@ class LinkChecker:
             url = resource['url']
             url = url.replace('sequenz=tabelleErgebnis', 'sequenz=tabellen')
             url = url.replace('sequenz=tabelleDownload', 'sequenz=tabellen')
-            # logme("URL :" + url)
             try:
                 code = self.validate(url)
-                # logme("CODE: " + str(code))
                 if self.is_available(code):
                     self.record_success(dataset_id, url)
                 else:
@@ -61,6 +57,9 @@ class LinkChecker:
             except requests.exceptions.TooManyRedirects:
                 delete = delete or self.record_failure(dataset, url,
                                                        'Redirect Loop', portal)
+            
+            except requests.exceptions.SSLError:
+                delete = delete or self.record_failure(dataset, url,'SSL Error', portal)
             except requests.exceptions.RequestException as e:
                 if e is None:
                     delete = delete or self.record_failure(dataset, url,
@@ -70,10 +69,16 @@ class LinkChecker:
             except socket.timeout:
                 delete = delete or self.record_failure(dataset, url,
                                                        'Timeout', portal)
+            except ValueError as e:
+               self.record_success(dataset_id,url)
+            except Exception as e:
+                #In case of an unknown exception, change nothing
+                delete = delete or self.record_failure(dataset, url, 'Unknown', portal)
             end_time = time.time()
             logme("End time: "+ str(end_time),my_path)
             logme("Total time: " + str(end_time-start_time),my_path)
             logme("--------------------------", my_path)
+            logme("Rueckgabewert von process_record:"+str(delete), my_path)
         return delete
 
     def check_dataset(self, dataset):
@@ -99,32 +104,37 @@ class LinkChecker:
             req = urllib2.Request(url, None, headers)
             try:
                 respo = urllib2.urlopen(req)
-                # logme("HTTP-CODE: " + str(respo.code))
                 return respo.code
             except urllib2.URLError, e:
-                # logme("HTTP-CODE(e): " + str(e.code))
                 return e.code
         else:
-            response = requests.head(url, allow_redirects=True, timeout=self.TIMEOUT)
-            if self.is_available(response.status_code):
-                return response.status_code
-                # logme("validate_if: RESPONSE.status: " + response.status_code)
-            else:
-                response = requests.get(url, allow_redirects=True, timeout=self.TIMEOUT)
-                # logme("validate_else: RESPONSE.status: " + str(response.status_code))
-                return response.status_code
+            try:
+                response = requests.get(url, allow_redirects=True, stream=True, timeout=self.TIMEOUT,verify=False)
+            except requests.exceptions.SSLError:
+                logme("SSL_Error",my_path)
+                response = requests.head(url, allow_redirects=True, timeout=self.TIMEOUT)
+            response.raise_for_status()
+            size = 0
+            start = time.time()
+            maximum_response_size = 10485760
+            recieve_timeout = 35.0
+            for chunk in response.iter_content(1024):
+                if time.time() - start > recieve_timeout:
+                    raise ValueError('timeout reached at'+ str(recieve_timeout))
+
+                size += len(chunk)
+                if size > maximum_response_size:
+                    raise ValueError('response too large (bigger than '+ str(size)+')' )
+            return response.status_code
 
     def is_available(self, response_code):
         return response_code >= 200 and response_code < 300
 
     def record_failure(self, dataset, url, status, portal,
                        date=datetime.now().date()):
-        # logme("record_failure: URL: " + url)
         dataset_id = dataset['id']
-        # logme("record_failure: DATASET_ID: " + dataset_id)
         dataset_name = dataset['name']
         delete = False
-        log.debug(self.redis_client.get(dataset_id))
         record = unicode(self.redis_client.get(dataset_id))
         try:
             record = eval(record)
@@ -162,8 +172,9 @@ class LinkChecker:
             url_entry = record['urls'][url]
             last_updated = datetime.strptime(url_entry['date'], "%Y-%m-%d")
             last_updated = last_updated.date()
-
+    
             if last_updated < date:
+                url_entry['status'] = status
                 url_entry['strikes'] += 1
                 url_entry['date'] = date.strftime("%Y-%m-%d")
                 self.redis_client.set(dataset_id, record)
@@ -202,3 +213,4 @@ class LinkChecker:
                 print "DS_error: ", dataset_id
 
         return result
+

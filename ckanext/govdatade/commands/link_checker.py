@@ -19,7 +19,7 @@ from ckanext.govdatade.validators import link_checker
 
 
 def logme(logText):
-        f = open('/opt/linkChecker.log','a')
+        f = open('/tmp/linkCheckerCommand.log','a')
         f.write(logText + '\n')
         f.close
 
@@ -81,6 +81,8 @@ class LinkChecker(CkanCommand):
 
     def command(self):
         super(LinkChecker,self)._load_config()
+        active_datasets = set()
+
         if len(self.args) == 0:
 
             context = {'model': model,
@@ -91,11 +93,13 @@ class LinkChecker(CkanCommand):
 
             num_datasets = 0
             for i, dataset in enumerate(iterate_local_datasets(context)):
-                print 'Processing dataset %s' % i
+                print 'Processing dataset %s with name: %s' % (i,dataset['name'])
                 normalize_action_dataset(dataset)
                 validator.process_record(dataset)
                 num_datasets += 1
+                active_datasets.add(dataset['id'])
 
+            self.delete_deprecated_datasets(active_dataset_ids)
             general = {'num_datasets': num_datasets}
             validator.redis_client.set('general', general)
         if len(self.args) > 0:
@@ -119,3 +123,11 @@ class LinkChecker(CkanCommand):
                 print 'Processing dataset %s' % dataset
                 normalize_action_dataset(dataset)
                 validator.process_record(dataset)
+
+    def delete_deprecated_datasets(self, dataset_ids):
+        validator = link_checker.LinkChecker()
+        redis_ids = validator.redis_client.keys()
+        for redis_id in redis_ids:
+            if not redis_id in dataset_ids:
+                validator.redis_client.delete(redis_id)
+                logme('***Removing deprecated dataset '+str(redis_id)+' from Redis***')

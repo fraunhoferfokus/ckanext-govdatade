@@ -18,7 +18,6 @@ from jsonschema.validators import Draft3Validator
 from math import ceil
 
 import ckanclient
-import os
 
 
 class SchemaChecker(CkanCommand):
@@ -107,7 +106,7 @@ class SchemaChecker(CkanCommand):
                 'valid_datasets':      0}
 
         if len(self.args) == 0:
-
+            active_datasets = []
             context = {'model':       model,
                        'session':     model.Session,
                        'ignore_auth': True}
@@ -120,12 +119,13 @@ class SchemaChecker(CkanCommand):
                 normalize_action_dataset(dataset)
                 validator.process_record(dataset)
                 num_datasets += 1
+                active_datasets.append(dataset['id'])
 
+            delete_deprecated_violations(active_datasets)
             general = {'num_datasets': num_datasets}
             validator.redis_client.set('general', general)
 
         elif len(self.args) == 2 and self.args[0] == 'specific':
-
             context = {'model':       model,
                        'session':     model.Session,
                        'ignore_auth': True}
@@ -155,3 +155,11 @@ class SchemaChecker(CkanCommand):
                 self.validate_datasets(datasets, data)
 
             self.write_validation_result(self.render_template(data))
+
+def delete_deprecated_violations(self, active_datasets):
+    redis_client = validator.redis.client
+    redis_dataset_ids = redis_client.keys()
+    for redis_id in redis_dataset_ids:
+        if redis_id not in active_datasets:
+            redis_client.delete(redis_id)
+            print 'deleted deprecated package %s from redis' % redis_id
