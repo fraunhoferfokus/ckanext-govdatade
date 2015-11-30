@@ -257,7 +257,7 @@ class RostockCKANHarvester(GovDataHarvester):
         super(RostockCKANHarvester, self).import_stage(harvest_object)
 
 
-class HamburgCKANHarvester(GroupCKANHarvester):
+class HamburgCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
 
     def info(self):
@@ -498,7 +498,7 @@ class RLPCKANHarvester(GovDataHarvester):
         super(RLPCKANHarvester, self).import_stage(harvest_object)
 
 
-class DatahubCKANHarvester(GroupCKANHarvester):
+class DatahubCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Datahub IO importing a small set of packages."""
 
     portal = 'http://datahub.io/'
@@ -562,7 +562,7 @@ class DatahubCKANHarvester(GroupCKANHarvester):
         super(DatahubCKANHarvester, self).import_stage(harvest_object)
 
 
-class KoelnCKANHarvester(GroupCKANHarvester):
+class KoelnCKANHarvester(GovDataHarvester):
     '''
     A CKAN Harvester for Koeln. The Harvester retrieves a JSON dump,
     which will be loaded to CKAN.
@@ -719,7 +719,7 @@ class KoelnCKANHarvester(GroupCKANHarvester):
         package['name'] = name
 
 
-class BonnCKANHarvester(KoelnCKANHarvester):
+class BonnCKANHarvester(GovDataHarvester):
     '''
     A CKAN Harvester for Bonn.
     '''
@@ -733,7 +733,80 @@ class BonnCKANHarvester(KoelnCKANHarvester):
 
 
     def amend_package(self, package):
-        super(BonnCKANHarvester, self).amend_package(package)
+        #super(BonnCKANHarvester, self).amend_package(package)
+        # map these two group names to schema group names
+        out = []
+        if 'Geo' in package['groups']:
+            package['groups'].append('geo')
+            package['groups'].remove('Geo')
+
+        if 'Bildung und Wissenschaft' in package['groups']:
+            package['groups'].append(u'bildung_wissenschaft')
+            package['groups'].remove('Bildung und Wissenschaft')
+
+        if 'Gesetze und Justiz' in package['groups']:
+            package['groups'].append(u'gesetze_justiz')
+            package['groups'].remove('Gesetze und Justiz')
+
+        if 'Gesundheit' in package['groups']:
+            package['groups'].append(u'gesundheit')
+            package['groups'].remove('Gesundheit')
+
+        if 'Infrastruktur' in package['groups']:
+            package['groups'].append(u'infrastruktur_bauen_wohnen')
+            package['groups'].remove('Infrastruktur')
+            package['groups'].remove('Bauen und Wohnen')
+
+        if 'Kultur' in package['groups']:
+            package['groups'].append(u'kultur_freizeit_sport_tourismus')
+            package['groups'].remove('Kultur')
+            package['groups'].remove('Freizeit')
+            package['groups'].remove('Sport und Tourismus')
+
+        if 'Politik und Wahlen' in package['groups']:
+            package['groups'].append(u'politik_wahlen')
+            package['groups'].remove('Politik und Wahlen')
+
+        if 'Soziales' in package['groups']:
+            package['groups'].append(u'soziales')
+            package['groups'].remove('Soziales')
+
+        if 'Transport und Verkehr' in package['groups']:
+            package['groups'].append(u'transport_verkehr')
+            package['groups'].remove('Transport und Verkehr')
+
+        if 'Umwelt und Klima' in package['groups']:
+            package['groups'].append(u'umwelt_klima')
+            package['groups'].remove('Umwelt und Klima')
+
+        if 'Verbraucherschutz' in package['groups']:
+            package['groups'].append(u'verbraucher')
+            package['groups'].remove('Verbraucherschutz')
+
+        if 'Verwaltung' in package['groups']:
+            package['groups'].append(u'verwaltung')
+            package['groups'].remove('Verwaltung')
+            package['groups'].remove('Haushalt und Steuern')
+
+        if 'Wirtschaft und Arbeit' in package['groups']:
+            package['groups'].append(u'wirtschaft_arbeit')
+            package['groups'].remove('Wirtschaft und Arbeit')
+
+        for cat in package['groups']:
+            if 'Bev' in cat:
+                package['groups'].append(u'bevoelkerung')
+
+        from ckan.lib.munge import munge_title_to_name
+
+        name = package['name']
+        try:
+            name = munge_title_to_name(name).replace('_', '-')
+            while '--' in name:
+                name = name.replace('--', '-')
+        except Exception, e:
+            log.debug('Encoding Error ' + str(e))
+
+        package['name'] = name
 
         if u'Öffentliche Verwaltung' in package['groups']:
             package['groups'].append('verwaltung')
@@ -756,7 +829,7 @@ class BonnCKANHarvester(KoelnCKANHarvester):
         package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
 
 
-class OpenNRWCKANHarvester(GroupCKANHarvester):
+class OpenNRWCKANHarvester(GovDataHarvester):
     '''
     A CKAN Harvester for OpenNRW
     '''
