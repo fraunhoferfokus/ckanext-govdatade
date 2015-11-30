@@ -91,6 +91,11 @@ class GovDataHarvester(GroupCKANHarvester):
 
         return condition_check
 
+    def get_remote_dataset_names(self, content):
+        log.info('Calling GovDataHarvester get_remote_dataset_names..')
+        remote_dataset_names = json.loads(content)
+        return remote_dataset_names
+
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
 
@@ -215,9 +220,11 @@ class GovDataHarvester(GroupCKANHarvester):
             return None
 
         context = self.build_context()
-        remote_datasets = json.loads(content)
-        # remote_dataset_names = map(lambda d: d['name'], remote_datasets)
-        # self.delete_deprecated_datasets(context, remote_dataset_names)
+        #remote_datasets = json.loads(content)
+        remote_dataset_names = self.get_remote_dataset_names(content)
+        log.info(str(remote_dataset_names))
+        #remote_dataset_names = map(lambda d: d['name'], remote_datasets)
+        self.delete_deprecated_datasets(context, remote_dataset_names)
 
         return super(GovDataHarvester, self).gather_stage(harvest_job)
 

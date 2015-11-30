@@ -22,6 +22,12 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
                 'title': 'Base Harvester',
                 'description': 'A Base CKAN Harvester for CKANs which return a JSON dump file.'}
 
+    def get_remote_dataset_names(self, content):
+        log.info('Calling JSONDumpBaseCKANHarvester get_remote_dataset_names..')
+        remote_dataset_names = json.loads(content)
+        remote_dataset_names = map(lambda d: d.get(name), remote_datasets)
+        return remote_dataset_names
+    
     def gather_stage(self, harvest_job):
         self._set_config(harvest_job.source.config)
         # Request all remote packages
