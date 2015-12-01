@@ -71,6 +71,8 @@ class GroupCKANHarvester(CKANHarvester):
 class GovDataHarvester(GroupCKANHarvester):
     """The base harvester for GovData.de perfoming remote synchonization."""
 
+    PORTAL_ACRONYM = ''
+
     def build_context(self):
         return {'model': model,
                 'session': Session,
@@ -94,6 +96,7 @@ class GovDataHarvester(GroupCKANHarvester):
     def get_remote_dataset_names(self, content):
         log.info('Calling GovDataHarvester get_remote_dataset_names..')
         remote_dataset_names = json.loads(content)
+        log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
@@ -106,11 +109,11 @@ class GovDataHarvester(GroupCKANHarvester):
         deprecated = set(local_dataset_names) - set(remote_dataset_names)
         log.info('Found %s deprecated datasets.' % len(deprecated))
 
-        for local_dataset in filtered:
+        '''for local_dataset in filtered:
             if local_dataset['name'] in deprecated:
                 local_dataset['state'] = 'deleted'
                 local_dataset['tags'].append({'name': 'deprecated'})
-                package_update(context, local_dataset)
+                package_update(context, local_dataset)'''
 
     def compare_metadata_modified(self, remote_md_modified, local_md_modified):
         dt_format = "%Y-%m-%dT%H:%M:%S.%f"
@@ -220,9 +223,8 @@ class GovDataHarvester(GroupCKANHarvester):
             return None
 
         context = self.build_context()
-        #remote_datasets = json.loads(content)
+    
         remote_dataset_names = self.get_remote_dataset_names(content)
-        log.info(str(remote_dataset_names))
         #remote_dataset_names = map(lambda d: d['name'], remote_datasets)
         self.delete_deprecated_datasets(context, remote_dataset_names)
 
@@ -236,7 +238,8 @@ class GovDataHarvester(GroupCKANHarvester):
 
 class RostockCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rostock solving data compatibility problems."""
-
+    
+    PORTAL_ACRONYM = '-hro'
     PORTAL = 'http://www.opendata-hro.de'
 
     def info(self):
@@ -248,7 +251,7 @@ class RostockCKANHarvester(GovDataHarvester):
     def amend_package(self, package):
         portal = 'http://www.opendata-hro.de'
         package['extras']['metadata_original_portal'] = portal
-        package['name'] = package['name'] + '-hro'
+        package['name'] = package['name'] + PORTAL_ACRONYM
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
 
@@ -266,7 +269,7 @@ class RostockCKANHarvester(GovDataHarvester):
 
 class HamburgCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
-
+        
     def info(self):
         return {'name': 'hamburg',
                 'title': 'Hamburg Harvester',
@@ -381,6 +384,7 @@ class HamburgCKANHarvester(GovDataHarvester):
 
 class BerlinCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Berlin sovling data compatibility problems."""
+    
     PORTAL = 'http://datenregister.berlin.de/'
 
     def info(self):
@@ -427,7 +431,7 @@ class BerlinCKANHarvester(GovDataHarvester):
 
 class RLPCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rhineland-Palatinate sovling data compatibility problems."""
-
+    
     def info(self):
         return {'name': 'rlp',
                 'title': 'RLP Harvester',

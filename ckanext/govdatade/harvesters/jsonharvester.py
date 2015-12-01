@@ -17,6 +17,9 @@ log = logging.getLogger(__name__)
 
 
 class JSONDumpBaseCKANHarvester(GovDataHarvester):
+    
+    PORTAL_ACRONYM = ''
+    
     def info(self):
         return {'name': 'base',
                 'title': 'Base Harvester',
@@ -26,6 +29,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
         log.info('Calling JSONDumpBaseCKANHarvester get_remote_dataset_names..')
         remote_dataset_names = json.loads(content)
         remote_dataset_names = map(lambda d: d.get(name), remote_datasets)
+        log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
     
     def gather_stage(self, harvest_job):
@@ -48,8 +52,8 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
             object_ids.append(obj.id)
 
         context = self.build_context()
-        remote_dataset_names = map(lambda d: d['name'], packages)
-        #self.delete_deprecated_datasets(context, remote_dataset_names)
+        remote_dataset_names = get_remote_dataset_names(content)
+        self.delete_deprecated_datasets(context, remote_dataset_names)
 
         if object_ids:
             return object_ids
@@ -303,6 +307,9 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
 
 
 class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
+    
+    PORTAL_ACRONYM = ''
+    
     def info(self):
         return {'name': 'zipbase',
                 'title': 'Base Zip Harvester',
@@ -323,15 +330,20 @@ class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
 
         file_content = StringIO.StringIO(content)
         archive = zipfile.ZipFile(file_content, "r")
+        remote_dataset_names = {}
         for name in archive.namelist():
             if name.endswith(".json"):
                 package = json.loads(archive.read(name))
                 packages.append(package)
+                remote_dataset_names.append(package['name'])
                 obj = HarvestObject(guid=package['name'], job=harvest_job)
                 obj.content = json.dumps(package)
                 obj.save()
                 object_ids.append(obj.id)
-
+                
+        log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
+        self.delete_deprecated_datasets(remote_dataset_names)
+        
         if object_ids:
             return object_ids
         else:
@@ -465,6 +477,7 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
                 obj.save()
                 object_ids.append(obj.id)
 
+        
         if object_ids:
             return object_ids
         else:
