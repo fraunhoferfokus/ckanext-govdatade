@@ -102,12 +102,13 @@ class GovDataHarvester(GroupCKANHarvester):
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
 
+        log.info('DELTEING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
         local_datasets = iterate_local_datasets(context)
-        filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
-        local_dataset_names = map(lambda dataset: dataset['name'], filtered)
+        #filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
+        #local_dataset_names = map(lambda dataset: dataset['name'], filtered)
 
-        deprecated = set(local_dataset_names) - set(remote_dataset_names)
-        log.info('Found %s deprecated datasets.' % len(deprecated))
+        #deprecated = set(local_dataset_names) - set(remote_dataset_names)
+        #log.info('Found %s deprecated datasets.' % len(deprecated))
 
         '''for local_dataset in filtered:
             if local_dataset['name'] in deprecated:
@@ -617,6 +618,8 @@ class KoelnCKANHarvester(GovDataHarvester):
         except Exception, e:
             self._save_gather_error('%r' % e.message, harvest_job)
 
+        remote_dataset_names = self.get_remote_dataset_names(content)
+        self.delete_deprecated_datasets(remote_dataset_names)
 
     def fetch_stage(self, harvest_object):
         log.debug('In ' + self.city + 'CKANHarvester fetch_stage')

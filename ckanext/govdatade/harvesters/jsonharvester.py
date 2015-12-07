@@ -52,7 +52,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
             object_ids.append(obj.id)
 
         context = self.build_context()
-        remote_dataset_names = get_remote_dataset_names(content)
+        remote_dataset_names = self.get_remote_dataset_names(content)
         self.delete_deprecated_datasets(context, remote_dataset_names)
 
         if object_ids:
@@ -477,7 +477,8 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
                 obj.save()
                 object_ids.append(obj.id)
 
-        
+        remote_dataset_names = self.get_remote_dataset_names(content)
+        self.delete_deprecated_datasets(remote_dataset_names)
         if object_ids:
             return object_ids
         else:
@@ -599,6 +600,8 @@ class BfJHarvester(JSONZipBaseHarvester):
                 obj.save()
                 object_ids.append(obj.id)
 
+        remote_dataset_names = self.get_remote_dataset_names(content)
+        self.delete_deprecated_datasets(remote_dataset_names)
         if object_ids:
             return object_ids
         else:
