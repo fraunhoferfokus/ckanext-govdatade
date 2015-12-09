@@ -105,35 +105,33 @@ class GovDataHarvester(GroupCKANHarvester):
     def table(self, name):
         return Table(name, model.meta.metadata, autoload=True)
 
-    def get_local_datasets(self, context):
-        original_portal = 'http://daten.rlp.de' # TODO should be parameter
+    def get_local_datasets_for_portal(self, context, original_portal):
+        log.info(">>>> Got portal: "+original_portal)
         conn = Session.connection()
         package_table = self.table('package')
         package_extras_table = self.table('package_extra')
         #select name from package where id in (select package_id from package_extra where (value='"http://daten.rlp.de"' AND package_id in (SELECT id from package where state='active')));
         get_active_packages = select([package_table.c.id]).where(package_table.c.state=='active')
         filtered = select([package_extras_table.c.package_id]).where(and_(package_extras_table.c.value==original_portal,package_extras_table.c.package_id.in_(get_active_packages)))
-	get_names_of_filtered = select([package_table.c.name]).where(package_table.c.id.in_(filtered))
-        #s = select([package_extras_table.c.package_id]).where(package_extras_table.c.package_id.in_(s2));
-        #s = select([harvest_job_table.c.id]).order_by(func.count(harvest_job_table.c.id).desc()).limit(10)
+        get_names_of_filtered = select([package_table.c.name]).where(package_table.c.id.in_(filtered))
+        
         result = model.Session.execute(get_names_of_filtered).fetchall()
-        log.info(">>>> Length")
-        log.info(len(result))
         results = [row['name'] for row in result]
         log.info(len(results))
-        log.info(results)
+        return results
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
 
-        log.info('DELTEING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
+        log.info('DELETING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
         
-        local_datasets = self.get_local_datasets(context)
-        #filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
-        #local_dataset_names = map(lambda dataset: dataset['name'], filtered)
+        local_datasets = self.get_local_datasets_for_portal(context, self.PORTAL)
 
-        #deprecated = set(local_dataset_names) - set(remote_dataset_names)
-        #log.info('Found %s deprecated datasets.' % len(deprecated))
+        new_local_datasets = [local.replace(self.PORTAL_ACRONYM,'') for local in local_datasets]
+        log.info(new_local_datasets)
+        
+        deprecated = set(new_local_datasets) - set(remote_dataset_names)
+        log.info('Found %s deprecated datasets.' % len(deprecated))
 
         '''for local_dataset in filtered:
             if local_dataset['name'] in deprecated:
@@ -275,9 +273,8 @@ class RostockCKANHarvester(GovDataHarvester):
                                'compatibility problems.'}
 
     def amend_package(self, package):
-        portal = 'http://www.opendata-hro.de'
-        package['extras']['metadata_original_portal'] = portal
-        package['name'] = package['name'] + PORTAL_ACRONYM
+        package['extras']['metadata_original_portal'] = self.PORTAL
+        package['name'] = package['name'] + self.PORTAL_ACRONYM
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
 
@@ -295,7 +292,9 @@ class RostockCKANHarvester(GovDataHarvester):
 
 class HamburgCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Hamburg solving data compatibility problems."""
-        
+
+    PORTAL = 'http://suche.transparenz.hamburg.de/'
+
     def info(self):
         return {'name': 'hamburg',
                 'title': 'Hamburg Harvester',
@@ -359,9 +358,8 @@ class HamburgCKANHarvester(GovDataHarvester):
         log.debug("After: ")
         log.debug(package['groups'])
         # set original portal
-        default_portal = 'http://suche.transparenz.hamburg.de/'
         if not extras.get('metadata_original_portal'):
-            extras['metadata_original_portal'] = default_portal
+            extras['metadata_original_portal'] = self.PORTAL
 
         assert_author_fields(package, package.get('maintainer'),
                              package.get('maintainer_email'))
@@ -411,7 +409,7 @@ class HamburgCKANHarvester(GovDataHarvester):
 class BerlinCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Berlin sovling data compatibility problems."""
     
-    PORTAL = 'http://datenregister.berlin.de/'
+    PORTAL = 'http://datenregister.berlin.de'
 
     def info(self):
         return {'name': 'berlin',
@@ -437,9 +435,8 @@ class BerlinCKANHarvester(GovDataHarvester):
             package['type'] = 'datensatz'
 
         package['groups'] = translate_groups(package['groups'], 'berlin')
-        default_portal = 'http://datenregister.berlin.de'
         if not extras.get('metadata_original_portal'):
-            extras['metadata_original_portal'] = default_portal
+            extras['metadata_original_portal'] = self.PORTAL
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
         return True
@@ -458,6 +455,8 @@ class BerlinCKANHarvester(GovDataHarvester):
 class RLPCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Rhineland-Palatinate sovling data compatibility problems."""
     
+    PORTAL = 'http://daten.rlp.de'
+
     def info(self):
         return {'name': 'rlp',
                 'title': 'RLP Harvester',
@@ -485,7 +484,7 @@ class RLPCKANHarvester(GovDataHarvester):
             assert_author_fields(package_dict, package_dict['point_of_contact'],
                              package_dict['point_of_contact_address']['email'])
 
-        package_dict['extras']['metadata_original_portal'] = 'http://daten.rlp.de'
+        package_dict['extras']['metadata_original_portal'] = self.PORTAL
         package_dict['extras']['sector'] = 'oeffentlich'
 
         # the extra fields are present as CKAN core fields in the remote
@@ -538,7 +537,7 @@ class RLPCKANHarvester(GovDataHarvester):
 class DatahubCKANHarvester(GovDataHarvester):
     """A CKAN Harvester for Datahub IO importing a small set of packages."""
 
-    portal = 'http://datahub.io/'
+    PORTAL = 'http://datahub.io/'
 
     valid_packages = ['hbz_unioncatalog', 'lobid-resources',
                       'deutsche-nationalbibliografie-dnb',
@@ -579,14 +578,12 @@ class DatahubCKANHarvester(GovDataHarvester):
         return package_name in DatahubCKANHarvester.valid_packages
 
     def amend_package(self, package_dict):
-        portal = 'http://datahub.io/'
-
         package_dict['type'] = 'datensatz'
 
         for resource in package_dict['resources']:
             resource['format'] = resource['format'].lower()
 
-        package_dict['extras']['metadata_original_portal'] = portal
+        package_dict['extras']['metadata_original_portal'] = self.PORTAL
         package_dict['groups'].append('bildung_wissenschaft')
 
     def import_stage(self, harvest_object):
@@ -763,6 +760,7 @@ class BonnCKANHarvester(GovDataHarvester):
     A CKAN Harvester for Bonn.
     '''
 
+    PORTAL = 'http://opendata.bonn.de/'
     city = 'Bonn'
 
     def info(self):
@@ -865,13 +863,15 @@ class BonnCKANHarvester(GovDataHarvester):
             package['groups'].remove(u'Bevölkerung')
 
         package['license_id'] = 'dl-de-by-1.0' if package['license_id'] == 'dl-de-by' else package['license_id']
-        package['extras']['metadata_original_portal'] = 'http://opendata.bonn.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
 
 
 class OpenNRWCKANHarvester(GovDataHarvester):
     '''
     A CKAN Harvester for OpenNRW
     '''
+
+    PORTAL = 'http://open.nrw/'
 
     def info(self):
         return {'name': 'opennrw',
@@ -880,7 +880,7 @@ class OpenNRWCKANHarvester(GovDataHarvester):
 
     def import_stage(self, harvest_object):
         package_dict = json.loads(harvest_object.content)
-        package_dict['extras']['metadata_original_portal'] = 'http://open.nrw/'
+        package_dict['extras']['metadata_original_portal'] = self.PORTAL
         package_dict['extras']['metadata_transformer'] = ''
         #
         # if 'notes' in package_dict and 'opennrw_notes' in package_dict['extras']:

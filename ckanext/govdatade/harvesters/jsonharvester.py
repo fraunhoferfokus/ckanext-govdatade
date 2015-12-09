@@ -18,8 +18,6 @@ log = logging.getLogger(__name__)
 
 class JSONDumpBaseCKANHarvester(GovDataHarvester):
     
-    PORTAL_ACRONYM = ''
-    
     def info(self):
         return {'name': 'base',
                 'title': 'Base Harvester',
@@ -28,7 +26,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
     def get_remote_dataset_names(self, content):
         log.info('Calling JSONDumpBaseCKANHarvester get_remote_dataset_names..')
         remote_dataset_names = json.loads(content)
-        remote_dataset_names = map(lambda d: d.get(name), remote_datasets)
+        remote_dataset_names = map(lambda d: d.get('name'), remote_datasets)
         log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
     
@@ -96,7 +94,7 @@ class BremenCKANHarvester(JSONDumpBaseCKANHarvester):
 
         # set metadata original portal
         package['extras'][
-            'metadata_original_portal'] = 'http://daten.bremen.de/sixcms/detail.php?template=export_daten_json_d'
+            'metadata_original_portal'] = self.PORTAL
 
         # set correct groups
         if not package['groups']:
@@ -236,7 +234,7 @@ class MoersCKANHarvester(JSONDumpBaseCKANHarvester):
             package['maintainer_email'] = maintainers[0]['email']
 
         package['license_id'] = package['extras']['terms_of_use']['license_id']
-        package['extras']['metadata_original_portal'] = 'http://www.offenedaten.moers.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
 
         if not "spatial-text" in package["extras"].keys():
             package["extras"]["spatial-text"] = '05 1 70 024 Moers'
@@ -308,8 +306,6 @@ class GovAppsHarvester(JSONDumpBaseCKANHarvester):
 
 class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
     
-    PORTAL_ACRONYM = ''
-    
     def info(self):
         return {'name': 'zipbase',
                 'title': 'Base Zip Harvester',
@@ -341,7 +337,8 @@ class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
                 object_ids.append(obj.id)
                 
         log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
-        self.delete_deprecated_datasets(remote_dataset_names)
+        context = self.build_context()
+        self.delete_deprecated_datasets(context, remote_dataset_names)
         
         if object_ids:
             return object_ids
@@ -363,7 +360,7 @@ class BKGHarvester(JSONZipBaseHarvester):
         # generate id based on OID namespace and package name, this makes sure,
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'http://ims.geoportal.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
 
@@ -404,6 +401,9 @@ class DestatisZipHarvester(JSONZipBaseHarvester):
 
 
 class RegionalStatistikZipHarvester(JSONZipBaseHarvester):
+
+    PORTAL = 'https://www.regionalstatistik.de/'
+
     def info(self):
         return {'name': 'regionalStatistik',
                 'title': 'RegionalStatistik CKAN Harvester',
@@ -413,7 +413,7 @@ class RegionalStatistikZipHarvester(JSONZipBaseHarvester):
         # generate id based on OID namespace and package name, this makes sure,
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'https://www.regionalstatistik.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
 
@@ -437,7 +437,7 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
         # that packages with the same name get the same id
 
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'http://destatis.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
 
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
@@ -477,7 +477,8 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
                 object_ids.append(obj.id)
 
         remote_dataset_names = self.get_remote_dataset_names(content)
-        self.delete_deprecated_datasets(remote_dataset_names)
+        context = self.build_context()
+        self.delete_deprecated_datasets(context, remote_dataset_names)
         if object_ids:
             return object_ids
         else:
@@ -487,6 +488,9 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
 
 
 class SachsenZipHarvester(SecondDestatisZipHarvester):
+    
+    PORTAL = 'http://www.statistik.sachsen.de/'
+
     def info(self):
         return {'name': 'sachsen',
                 'title': 'Sachsen Harvester',
@@ -496,7 +500,7 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
         # generate id based on OID namespace and package name, this makes sure,
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'http://www.statistik.sachsen.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
 
     def import_stage(self, harvest_object):
         package = json.loads(harvest_object.content)
@@ -505,10 +509,8 @@ class SachsenZipHarvester(SecondDestatisZipHarvester):
         super(JSONZipBaseHarvester, self).import_stage(harvest_object)
         
 class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
+
     PORTAL = 'http://www.datenportal.bmbf.de/'
-
-
-
 
     def info(self):
         return {'name': 'bmbf',
@@ -532,7 +534,7 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
     def amend_package(self, package):
         
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'http://www.datenportal.bmbf.de/'
+        package['extras']['metadata_original_portal'] = self.PORTAL
         
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
@@ -546,9 +548,12 @@ class BMBF_ZipHarvester(JSONDumpBaseCKANHarvester):
 
         harvest_object.content = json.dumps(package)
         super(BMBF_ZipHarvester, self).import_stage(harvest_object)
-                
+
+
 class BfJHarvester(JSONZipBaseHarvester):
-   
+
+    PORTAL = 'https://www.bundesjustizamt.de'
+
     def info(self):
         return {'name': 'bfj',
                 'title': 'BfJ CKAN Harvester',
@@ -558,7 +563,7 @@ class BfJHarvester(JSONZipBaseHarvester):
         # generate id based on OID namespace and package name, this makes sure,
         # that packages with the same name get the same id
         package['id'] = str(uuid.uuid5(uuid.NAMESPACE_OID, str(package['name'])))
-        package['extras']['metadata_original_portal'] = 'https://www.bundesjustizamt.de'
+        package['extras']['metadata_original_portal'] = self.PORTAL
         for resource in package['resources']:
             resource['format'] = resource['format'].lower()
             
@@ -600,7 +605,8 @@ class BfJHarvester(JSONZipBaseHarvester):
                 object_ids.append(obj.id)
 
         remote_dataset_names = self.get_remote_dataset_names(content)
-        self.delete_deprecated_datasets(remote_dataset_names)
+        context = self.build_context()
+        self.delete_deprecated_datasets(context, remote_dataset_names)
         if object_ids:
             return object_ids
         else:
