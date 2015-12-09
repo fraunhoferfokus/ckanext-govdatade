@@ -99,11 +99,23 @@ class GovDataHarvester(GroupCKANHarvester):
         log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
 
+
+    def table(name):
+        return Table(name, model.meta.metadata, autoload=True)
+
+    def get_local_datasets(self, context):
+        conn = Session.connection()
+        harvest_job_table = table('harvest_job_table')
+        s = select([harvest_job_table.c.id]).order_by(func.count().desc()).limit(limit)
+        result = model.Session.execute(s).fetchall()
+        log.info(str(result))
+        
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
 
         log.info('DELTEING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
-        local_datasets = iterate_local_datasets(context)
+        
+        local_datasets = get_local_datasets(context)
         #filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
         #local_dataset_names = map(lambda dataset: dataset['name'], filtered)
 
