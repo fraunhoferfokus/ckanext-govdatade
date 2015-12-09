@@ -327,10 +327,9 @@ class JSONZipBaseHarvester(JSONDumpBaseCKANHarvester):
 
         object_ids = []
         packages = []
-
         file_content = StringIO.StringIO(content)
         archive = zipfile.ZipFile(file_content, "r")
-        remote_dataset_names = {}
+        remote_dataset_names = []
         for name in archive.namelist():
             if name.endswith(".json"):
                 package = json.loads(archive.read(name))

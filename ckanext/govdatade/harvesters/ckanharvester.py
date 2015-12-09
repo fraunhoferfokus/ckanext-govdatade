@@ -19,6 +19,8 @@ from ckan.logic import get_action
 from ckan.logic.schema import default_package_schema
 from ckan.model import Session
 
+from sqlalchemy import *
+
 log = logging.getLogger(__name__)
 
 
@@ -100,22 +102,33 @@ class GovDataHarvester(GroupCKANHarvester):
         return remote_dataset_names
 
 
-    def table(name):
+    def table(self, name):
         return Table(name, model.meta.metadata, autoload=True)
 
     def get_local_datasets(self, context):
+        original_portal = 'http://daten.rlp.de' # TODO should be parameter
         conn = Session.connection()
-        harvest_job_table = table('harvest_job_table')
-        s = select([harvest_job_table.c.id]).order_by(func.count().desc()).limit(limit)
-        result = model.Session.execute(s).fetchall()
-        log.info(str(result))
-        
+        package_table = self.table('package')
+        package_extras_table = self.table('package_extra')
+        #select name from package where id in (select package_id from package_extra where (value='"http://daten.rlp.de"' AND package_id in (SELECT id from package where state='active')));
+        get_active_packages = select([package_table.c.id]).where(package_table.c.state=='active')
+        filtered = select([package_extras_table.c.package_id]).where(and_(package_extras_table.c.value==original_portal,package_extras_table.c.package_id.in_(get_active_packages)))
+	get_names_of_filtered = select([package_table.c.name]).where(package_table.c.id.in_(filtered))
+        #s = select([package_extras_table.c.package_id]).where(package_extras_table.c.package_id.in_(s2));
+        #s = select([harvest_job_table.c.id]).order_by(func.count(harvest_job_table.c.id).desc()).limit(10)
+        result = model.Session.execute(get_names_of_filtered).fetchall()
+        log.info(">>>> Length")
+        log.info(len(result))
+        results = [row['name'] for row in result]
+        log.info(len(results))
+        log.info(results)
+
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
 
         log.info('DELTEING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
         
-        local_datasets = get_local_datasets(context)
+        local_datasets = self.get_local_datasets(context)
         #filtered = filter(self.portal_relevant(self.PORTAL), local_datasets)
         #local_dataset_names = map(lambda dataset: dataset['name'], filtered)
 
