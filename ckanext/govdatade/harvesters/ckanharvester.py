@@ -98,7 +98,6 @@ class GovDataHarvester(GroupCKANHarvester):
     def get_remote_dataset_names(self, content):
         log.info('Calling GovDataHarvester get_remote_dataset_names..')
         remote_dataset_names = json.loads(content)
-        log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
 
 
@@ -117,28 +116,24 @@ class GovDataHarvester(GroupCKANHarvester):
         
         result = model.Session.execute(get_names_of_filtered).fetchall()
         results = [row['name'] for row in result]
-        log.info(len(results))
+        log.info('Found %d Datasets for Portal'  %len(results))
         return results
 
     def delete_deprecated_datasets(self, context, remote_dataset_names):
         package_update = get_action('package_update')
-
-        log.info('DELETING DEPRECATED DATASETS: %s' % str(remote_dataset_names))
-        
+                
         local_datasets = self.get_local_datasets_for_portal(context, self.PORTAL)
 
         new_local_datasets = [local.replace(self.PORTAL_ACRONYM,'') for local in local_datasets]
-        log.info(new_local_datasets)
         
         deprecated_datasets_names = set(new_local_datasets) - set(remote_dataset_names)
         log.info('Found %s deprecated datasets.' % len(deprecated_datasets_names))
 
         for dataset_name in deprecated_datasets_names:
-            log.info('Deleting deprecated (Loop): ' + dataset_name)
+            log.info('Deleting deprecated dataset: ' + dataset_name)
             data_dict = {}
             data_dict['name'] = dataset_name+self.PORTAL_ACRONYM
             data_dict['state'] = 'deleted'
-            log.info(data_dict)
             package_update(context, data_dict)
             log.info('Deleted deprecated dataset: '+ dataset_name)      
 
