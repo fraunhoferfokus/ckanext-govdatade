@@ -136,7 +136,7 @@ class GovDataHarvester(GroupCKANHarvester):
         for dataset_name in deprecated_datasets_names:
             log.info('Deleting deprecated (Loop): ' + dataset_name)
             data_dict = {}
-            data_dict['name'] = dataset_name
+            data_dict['name'] = dataset_name+self.PORTAL_ACRONYM
             data_dict['state'] = 'deleted'
             log.info(data_dict)
             package_update(context, data_dict)
