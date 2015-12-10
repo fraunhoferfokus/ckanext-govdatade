@@ -112,7 +112,7 @@ class GovDataHarvester(GroupCKANHarvester):
         package_extras_table = self.table('package_extra')
         #select name from package where id in (select package_id from package_extra where (value='"http://daten.rlp.de"' AND package_id in (SELECT id from package where state='active')));
         get_active_packages = select([package_table.c.id]).where(package_table.c.state=='active')
-        filtered = select([package_extras_table.c.package_id]).where(and_(package_extras_table.c.value==original_portal,package_extras_table.c.package_id.in_(get_active_packages)))
+        filtered = select([package_extras_table.c.package_id]).where(and_(package_extras_table.c.key=='metadata_original_portal',and_(package_extras_table.c.value==original_portal,package_extras_table.c.package_id.in_(get_active_packages))))
         get_names_of_filtered = select([package_table.c.name]).where(package_table.c.id.in_(filtered))
         
         result = model.Session.execute(get_names_of_filtered).fetchall()
