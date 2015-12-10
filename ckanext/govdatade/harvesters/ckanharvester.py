@@ -130,14 +130,17 @@ class GovDataHarvester(GroupCKANHarvester):
         new_local_datasets = [local.replace(self.PORTAL_ACRONYM,'') for local in local_datasets]
         log.info(new_local_datasets)
         
-        deprecated = set(new_local_datasets) - set(remote_dataset_names)
-        log.info('Found %s deprecated datasets.' % len(deprecated))
+        deprecated_datasets_names = set(new_local_datasets) - set(remote_dataset_names)
+        log.info('Found %s deprecated datasets.' % len(deprecated_datasets_names))
 
-        '''for local_dataset in filtered:
-            if local_dataset['name'] in deprecated:
-                local_dataset['state'] = 'deleted'
-                local_dataset['tags'].append({'name': 'deprecated'})
-                package_update(context, local_dataset)'''
+        for dataset_name in deprecated_datasets_names:
+            log.info('Deleting deprecated (Loop): ' + dataset_name)
+            data_dict = {}
+            data_dict['name'] = dataset_name
+            data_dict['state'] = 'deleted'
+            log.info(data_dict)
+            package_update(context, data_dict)
+            log.info('Deleted deprecated dataset: '+ dataset_name)      
 
     def compare_metadata_modified(self, remote_md_modified, local_md_modified):
         dt_format = "%Y-%m-%dT%H:%M:%S.%f"
