@@ -25,7 +25,7 @@ class JSONDumpBaseCKANHarvester(GovDataHarvester):
 
     def get_remote_dataset_names(self, content):
         log.info('Calling JSONDumpBaseCKANHarvester get_remote_dataset_names..')
-        remote_dataset_names = json.loads(content)
+        remote_datasets = json.loads(content)
         remote_dataset_names = map(lambda d: d.get('name'), remote_datasets)
         log.info('REMOTE_DATASET_NAMES: ' + str(remote_dataset_names))
         return remote_dataset_names
@@ -462,7 +462,8 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
 
         object_ids = []
         packages = []
-
+        
+        remote_dataset_names = []
         file_content = StringIO.StringIO(content)
         archive = zipfile.ZipFile(file_content, "r")
         for name in archive.namelist():
