@@ -472,12 +472,12 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
 		_input = _input.decode("utf-8-sig")
 		package = json.loads(_input)
                 packages.append(package)
+                remote_dataset_names.append(package['name'])
                 obj = HarvestObject(guid=package['name'], job=harvest_job)
                 obj.content = json.dumps(package)
                 obj.save()
                 object_ids.append(obj.id)
 
-        remote_dataset_names = self.get_remote_dataset_names(content)
         context = self.build_context()
         self.delete_deprecated_datasets(context, remote_dataset_names)
         if object_ids:
