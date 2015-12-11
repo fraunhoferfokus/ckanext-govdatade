@@ -19,6 +19,8 @@ from ckan.logic import get_action
 from ckan.logic.schema import default_package_schema
 from ckan.model import Session
 
+from ckan import plugins
+
 from sqlalchemy import *
 
 log = logging.getLogger(__name__)
@@ -74,7 +76,16 @@ class GovDataHarvester(GroupCKANHarvester):
     """The base harvester for GovData.de perfoming remote synchonization."""
 
     PORTAL_ACRONYM = ''
-
+    
+    def purge_dataset(self, dataset_name):
+        dataset = model.Package.get(unicode(dataset_name))
+        name = dataset.name
+        plugins.load('synchronous_search')
+        rev = model.repo.new_revision()
+        dataset.purge()
+        model.repo.commit_and_remove()
+        log.info('%s purged' % name)
+        
     def build_context(self):
         return {'model': model,
                 'session': Session,
@@ -130,13 +141,9 @@ class GovDataHarvester(GroupCKANHarvester):
         log.info('Found %s deprecated datasets.' % len(deprecated_datasets_names))
 
         for dataset_name in deprecated_datasets_names:
-            log.info('Deleting deprecated dataset: ' + dataset_name)
-            data_dict = {}
-            data_dict['name'] = dataset_name+self.PORTAL_ACRONYM
-            data_dict['state'] = 'deleted'
-            package_update(context, data_dict)
-            log.info('Deleted deprecated dataset: '+ dataset_name)      
-
+            log.info('Purging deprecated dataset: ' + dataset_name)
+            self.purge_dataset(dataset_name)
+            
     def compare_metadata_modified(self, remote_md_modified, local_md_modified):
         dt_format = "%Y-%m-%dT%H:%M:%S.%f"
         remote_dt = datetime.datetime.strptime(remote_md_modified, dt_format)
