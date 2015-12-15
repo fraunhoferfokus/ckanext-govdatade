@@ -463,7 +463,6 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
         object_ids = []
         packages = []
         
-        remote_dataset_names = []
         file_content = StringIO.StringIO(content)
         archive = zipfile.ZipFile(file_content, "r")
         for name in archive.namelist():
@@ -472,14 +471,12 @@ class SecondDestatisZipHarvester(JSONZipBaseHarvester):
 		_input = _input.decode("utf-8-sig")
 		package = json.loads(_input)
                 packages.append(package)
-                remote_dataset_names.append(package['name'])
                 obj = HarvestObject(guid=package['name'], job=harvest_job)
                 obj.content = json.dumps(package)
                 obj.save()
                 object_ids.append(obj.id)
 
         context = self.build_context()
-        self.delete_deprecated_datasets(context, remote_dataset_names)
         if object_ids:
             return object_ids
         else:
