@@ -53,6 +53,9 @@ def normalize_action_dataset(dataset):
 
     extras = {}
     for entry in dataset['extras']:
+        if entry['key'] == 'temporal_granularity_factor':
+            if entry['value'].isdigit():
+                entry['value'] = int(entry['value'])
         extras[entry['key']] = entry['value']
 
     dataset['extras'] = normalize_extras(extras)
