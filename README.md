@@ -4,6 +4,8 @@
 
 GovData.de specific CKAN extension
 
+**Hinweis:** Dieses Repository wird nicht mehr für die Weiterentwicklung von GovData genutzt. Für Fragen, Anregungen und Diskussionen bzgl. GovData (www.govdata.de) nutzen Sie bitte die hier zur Verfügung gestellten Repositories: https://github.com/GovDataOfficial
+
 ### Dependencies
 
 The GovData.de harvester relies on a group import feature, which is currently not implemented in the `ckanext-harvest`. Therefore a [fork][fork] with a feature branch is used as the dependency instead.
